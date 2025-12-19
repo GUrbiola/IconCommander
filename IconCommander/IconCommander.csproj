@@ -187,6 +187,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="Dbs\Sqlite Db.db" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -204,6 +205,7 @@
   <ItemGroup>
     <None Include="Resources\cancel.png" />
     <None Include="Resources\more_imports.png" />
+    <Content Include="Dbs\MS SQL Db.sql" />
     <Content Include="Resources\Bookmark.png" />
     <Content Include="Resources\Book_32.png" />
     <Content Include="Resources\close_32x32.png" />
