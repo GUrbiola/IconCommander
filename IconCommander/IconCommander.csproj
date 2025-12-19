@@ -93,6 +93,7 @@
     <Compile Include="Controls\IconDisplayControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="ExportManager.cs" />
     <Compile Include="DataAccess\Delegates.cs" />
     <Compile Include="DataAccess\ErrorOnResponse.cs" />
     <Compile Include="DataAccess\IIconCommanderDb.cs" />

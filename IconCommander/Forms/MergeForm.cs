@@ -116,12 +116,37 @@ namespace IconCommander.Forms
             if (rbBottomLeft.Checked) return "BottomLeft";
             if (rbBottom.Checked) return "Bottom";
             if (rbBottomRight.Checked) return "BottomRight";
+            if (rbCustom.Checked)
+            {
+                int x = 0, y = 0;
+                int.TryParse(txtCustomX.Text, out x);
+                int.TryParse(txtCustomY.Text, out y);
+                return $"Custom:{x},{y}";
+            }
             return "TopRight";
         }
 
         private Point GetSmallIconPosition(string position, int bigWidth, int bigHeight, int smallWidth, int smallHeight)
         {
             int margin = 5; // Pixel margin from edges
+
+            // Check if custom position
+            if (position.StartsWith("Custom:"))
+            {
+                string coords = position.Substring(7); // Remove "Custom:" prefix
+                string[] parts = coords.Split(',');
+                if (parts.Length == 2)
+                {
+                    int x = 0, y = 0;
+                    if (int.TryParse(parts[0], out x) && int.TryParse(parts[1], out y))
+                    {
+                        // Clamp values to prevent drawing outside the big icon
+                        x = Math.Max(0, Math.Min(x, bigWidth - smallWidth));
+                        y = Math.Max(0, Math.Min(y, bigHeight - smallHeight));
+                        return new Point(x, y);
+                    }
+                }
+            }
 
             switch (position)
             {
@@ -367,6 +392,15 @@ namespace IconCommander.Forms
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        private void CustomPosition_Changed(object sender, EventArgs e)
+        {
+            // Only update preview if custom radio button is checked
+            if (rbCustom.Checked)
+            {
+                UpdatePreview();
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -33,6 +33,11 @@ namespace IconCommander.Forms
             this.rbTopRight = new System.Windows.Forms.RadioButton();
             this.rbTop = new System.Windows.Forms.RadioButton();
             this.rbTopLeft = new System.Windows.Forms.RadioButton();
+            this.rbCustom = new System.Windows.Forms.RadioButton();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtCustomX = new System.Windows.Forms.TextBox();
+            this.txtCustomY = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.lblPreviewInfo = new System.Windows.Forms.Label();
             this.picPreview = new System.Windows.Forms.PictureBox();
@@ -116,7 +121,12 @@ namespace IconCommander.Forms
             this.picSmallIcon.TabStop = false;
             // 
             // groupBox3
-            // 
+            //
+            this.groupBox3.Controls.Add(this.txtCustomY);
+            this.groupBox3.Controls.Add(this.txtCustomX);
+            this.groupBox3.Controls.Add(this.label3);
+            this.groupBox3.Controls.Add(this.label2);
+            this.groupBox3.Controls.Add(this.rbCustom);
             this.groupBox3.Controls.Add(this.rbBottomRight);
             this.groupBox3.Controls.Add(this.rbBottom);
             this.groupBox3.Controls.Add(this.rbBottomLeft);
@@ -128,7 +138,7 @@ namespace IconCommander.Forms
             this.groupBox3.Controls.Add(this.rbTopLeft);
             this.groupBox3.Location = new System.Drawing.Point(12, 238);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(226, 150);
+            this.groupBox3.Size = new System.Drawing.Size(380, 150);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Overlay Position";
@@ -231,7 +241,54 @@ namespace IconCommander.Forms
             this.rbTopLeft.Text = "Top Left";
             this.rbTopLeft.UseVisualStyleBackColor = true;
             this.rbTopLeft.CheckedChanged += new System.EventHandler(this.PositionRadioButton_CheckedChanged);
-            // 
+            //
+            // rbCustom
+            //
+            this.rbCustom.AutoSize = true;
+            this.rbCustom.Location = new System.Drawing.Point(240, 25);
+            this.rbCustom.Name = "rbCustom";
+            this.rbCustom.Size = new System.Drawing.Size(125, 17);
+            this.rbCustom.TabIndex = 9;
+            this.rbCustom.Text = "Custom (X, Y pixels):";
+            this.rbCustom.UseVisualStyleBackColor = true;
+            this.rbCustom.CheckedChanged += new System.EventHandler(this.PositionRadioButton_CheckedChanged);
+            //
+            // label2
+            //
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(245, 55);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(51, 13);
+            this.label2.TabIndex = 10;
+            this.label2.Text = "Left (X): ";
+            //
+            // label3
+            //
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(245, 85);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(48, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Top (Y):";
+            //
+            // txtCustomX
+            //
+            this.txtCustomX.Location = new System.Drawing.Point(302, 52);
+            this.txtCustomX.Name = "txtCustomX";
+            this.txtCustomX.Size = new System.Drawing.Size(60, 20);
+            this.txtCustomX.TabIndex = 12;
+            this.txtCustomX.Text = "0";
+            this.txtCustomX.TextChanged += new System.EventHandler(this.CustomPosition_Changed);
+            //
+            // txtCustomY
+            //
+            this.txtCustomY.Location = new System.Drawing.Point(302, 82);
+            this.txtCustomY.Name = "txtCustomY";
+            this.txtCustomY.Size = new System.Drawing.Size(60, 20);
+            this.txtCustomY.TabIndex = 13;
+            this.txtCustomY.Text = "0";
+            this.txtCustomY.TextChanged += new System.EventHandler(this.CustomPosition_Changed);
+            //
             // groupBox4
             // 
             this.groupBox4.Controls.Add(this.lblPreviewInfo);
@@ -352,5 +409,10 @@ namespace IconCommander.Forms
         private System.Windows.Forms.Label lblSmallIconInfo;
         private System.Windows.Forms.Label lblPreviewInfo;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.RadioButton rbCustom;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtCustomX;
+        private System.Windows.Forms.TextBox txtCustomY;
     }
 }

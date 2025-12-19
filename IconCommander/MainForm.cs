@@ -664,7 +664,7 @@ namespace IconCommander
                 return;
             }
 
-            IconBufferForm bufferForm = new IconBufferForm(databaseConnectionString, themeManager1.Theme);
+            IconBufferForm bufferForm = new IconBufferForm(databaseConnectionString, themeManager1.Theme, SelectedProject);
             bufferForm.ShowDialog();
         }
 

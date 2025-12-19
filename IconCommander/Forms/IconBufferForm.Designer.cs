@@ -37,6 +37,7 @@ namespace IconCommander.Forms
             this.btnRemove = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
             this.btnMerge = new System.Windows.Forms.Button();
+            this.btnExport = new System.Windows.Forms.Button();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -122,22 +123,33 @@ namespace IconCommander.Forms
             this.btnMerge.UseVisualStyleBackColor = true;
             this.btnMerge.Click += new System.EventHandler(this.btnMerge_Click);
             //
+            // btnExport
+            //
+            this.btnExport.Enabled = false;
+            this.btnExport.Location = new System.Drawing.Point(310, 410);
+            this.btnExport.Name = "btnExport";
+            this.btnExport.Size = new System.Drawing.Size(120, 30);
+            this.btnExport.TabIndex = 7;
+            this.btnExport.Text = "Export to Project";
+            this.btnExport.UseVisualStyleBackColor = true;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+            //
             // btnRefresh
             //
-            this.btnRefresh.Location = new System.Drawing.Point(387, 410);
+            this.btnRefresh.Location = new System.Drawing.Point(436, 410);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(80, 30);
-            this.btnRefresh.TabIndex = 7;
+            this.btnRefresh.TabIndex = 8;
             this.btnRefresh.Text = "Refresh";
             this.btnRefresh.UseVisualStyleBackColor = true;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             //
             // btnClose
             //
-            this.btnClose.Location = new System.Drawing.Point(473, 410);
+            this.btnClose.Location = new System.Drawing.Point(522, 410);
             this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(89, 30);
-            this.btnClose.TabIndex = 8;
+            this.btnClose.Size = new System.Drawing.Size(80, 30);
+            this.btnClose.TabIndex = 9;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
@@ -180,6 +192,7 @@ namespace IconCommander.Forms
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.btnRefresh);
+            this.Controls.Add(this.btnExport);
             this.Controls.Add(this.btnMerge);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnRemove);
@@ -212,6 +225,7 @@ namespace IconCommander.Forms
         private System.Windows.Forms.Button btnRemove;
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Button btnMerge;
+        private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.GroupBox groupBox1;

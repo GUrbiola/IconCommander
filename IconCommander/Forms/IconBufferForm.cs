@@ -1,4 +1,5 @@
 using IconCommander.DataAccess;
+using IconCommander.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,12 +18,14 @@ namespace IconCommander.Forms
         private ZidThemes theme;
         private IIconCommanderDb Conx;
         private DataTable bufferData;
+        private Project currentProject;
 
-        public IconBufferForm(string dbConnectionString, ZidThemes currentTheme)
+        public IconBufferForm(string dbConnectionString, ZidThemes currentTheme, Project project = null)
         {
             InitializeComponent();
             connectionString = dbConnectionString;
             theme = currentTheme;
+            currentProject = project;
 
             if (Properties.Settings.Default.IsSqlite)
                 Conx = new SqliteConnector();
@@ -127,6 +130,7 @@ ORDER BY
             int selectedCount = lstBuffer.SelectedIndices.Count;
             btnRemove.Enabled = selectedCount > 0;
             btnMerge.Enabled = selectedCount == 2;
+            btnExport.Enabled = selectedCount > 0 && currentProject != null;
             btnClear.Enabled = bufferData.Rows.Count > 0;
         }
 
@@ -301,6 +305,102 @@ ORDER BY
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            if (lstBuffer.SelectedIndices.Count == 0)
+            {
+                MessageBoxDialog.Show("Please select one or more icons to export.", "Icon Buffer",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
+                return;
+            }
+
+            if (currentProject == null)
+            {
+                MessageBoxDialog.Show("No project is currently selected.\n\nPlease create or open a project first from the main menu:\nProject → Create Project... or Project → Open Project...",
+                    "Icon Buffer", MessageBoxButtons.OK, MessageBoxIcon.Warning, theme);
+                return;
+            }
+
+            try
+            {
+                // Collect selected buffer rows
+                List<DataRow> selectedRows = new List<DataRow>();
+                foreach (int index in lstBuffer.SelectedIndices)
+                {
+                    if (index >= 0 && index < bufferData.Rows.Count)
+                    {
+                        selectedRows.Add(bufferData.Rows[index]);
+                    }
+                }
+
+                if (selectedRows.Count == 0)
+                {
+                    MessageBoxDialog.Show("No valid icons selected.", "Icon Buffer",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning, theme);
+                    return;
+                }
+
+                // Show confirmation
+                string message = $"Export {selectedRows.Count} icon(s) to project:\n\n" +
+                                $"Project: {currentProject.Name}\n" +
+                                $"Type: {currentProject.Type}\n" +
+                                $"Path: {currentProject.Path}\n\n" +
+                                $"Continue?";
+
+                DialogResult confirmResult = MessageBoxDialog.Show(message, "Export Icons",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, theme);
+
+                if (confirmResult != DialogResult.Yes)
+                    return;
+
+                // Perform export
+                ExportManager exportManager = new ExportManager(Conx);
+                ExportResult result = exportManager.ExportSelectedIcons(currentProject, selectedRows);
+
+                // Show results
+                if (result.HasErrors)
+                {
+                    string errors = string.Join("\n", result.Errors);
+                    MessageBoxDialog.Show($"Export failed with errors:\n\n{errors}",
+                        "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
+                }
+                else if (result.IsSuccess)
+                {
+                    string successMessage = $"Successfully exported {result.SuccessCount} icon(s)!\n\n";
+
+                    if (result.ExportedFiles.Count > 0)
+                        successMessage += $"Files created: {result.ExportedFiles.Count}\n";
+
+                    if (result.ResourcesAdded.Count > 0)
+                        successMessage += $"Resources added: {result.ResourcesAdded.Count}\n";
+
+                    if (result.ProjectFilesUpdated > 0)
+                        successMessage += $"Project files updated: {result.ProjectFilesUpdated}\n";
+
+                    if (result.Warnings.Count > 0)
+                    {
+                        successMessage += $"\nWarnings:\n{string.Join("\n", result.Warnings)}";
+                    }
+
+                    MessageBoxDialog.Show(successMessage, "Export Successful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
+
+                    // Optionally refresh the buffer
+                    LoadBuffer();
+                }
+                else
+                {
+                    MessageBoxDialog.Show("No icons were exported.", "Export",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error during export:\n\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
+            }
         }
     }
 }
