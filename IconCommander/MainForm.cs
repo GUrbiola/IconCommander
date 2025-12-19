@@ -1723,5 +1723,434 @@ namespace IconCommander
             // Recalculate filter control positions
             PositionFilterControls();
         }
+
+        // ========================== EXPORTED ICONS MANAGEMENT ==========================
+
+        private void LoadExportedIcons()
+        {
+            if (conx == null)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadExportedIcons: conx is null");
+                return;
+            }
+
+            if (SelectedProject == null)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadExportedIcons: No project selected");
+                dgvExportedIcons.DataSource = null;
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"LoadExportedIcons: Loading for project {SelectedProject.Name} (ID: {SelectedProject.Id})");
+
+            try
+            {
+                // Query ProjectIcons with all related data
+                // Note: Using 'icf' alias instead of 'if' to avoid potential SQL keyword conflicts
+                string sql = @"
+                    SELECT
+                        pi.Id,
+                        pi.IconFile,
+                        pi.DateSent,
+                        icf.FileName,
+                        icf.Extension,
+                        icf.Type,
+                        i.Name AS IconName,
+                        v.Name AS VeinName,
+                        c.Name AS CollectionName,
+                        icf.OriginalPath
+                    FROM ProjectIcons pi
+                    INNER JOIN IconFiles icf ON pi.IconFile = icf.Id
+                    INNER JOIN Icons i ON icf.Icon = i.Id
+                    INNER JOIN Veins v ON i.Vein = v.Id
+                    INNER JOIN Collections c ON v.Collection = c.Id
+                    WHERE pi.Project = @projectId
+                    ORDER BY pi.DateSent DESC";
+
+                var parameters = new Dictionary<string, string>
+                {
+                    { "@projectId", SelectedProject.Id.ToString() }
+                };
+
+                System.Diagnostics.Debug.WriteLine($"Executing SQL query for project ID: {SelectedProject.Id}");
+
+                var response = conx.ExecuteTable(sql, parameters);
+
+                if (response.IsOK)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Query successful. Found {response.Result.Rows.Count} exported icons");
+
+                    dgvExportedIcons.DataSource = response.Result;
+
+                    // Configure columns
+                    if (dgvExportedIcons.Columns.Count > 0)
+                    {
+                        dgvExportedIcons.Columns["Id"].Visible = false;
+                        dgvExportedIcons.Columns["IconFile"].Visible = false;
+                        dgvExportedIcons.Columns["FileName"].HeaderText = "File Name";
+                        dgvExportedIcons.Columns["Extension"].HeaderText = "Extension";
+                        dgvExportedIcons.Columns["Type"].HeaderText = "Type";
+                        dgvExportedIcons.Columns["IconName"].HeaderText = "Icon Name";
+                        dgvExportedIcons.Columns["VeinName"].HeaderText = "Vein";
+                        dgvExportedIcons.Columns["CollectionName"].HeaderText = "Collection";
+                        dgvExportedIcons.Columns["OriginalPath"].HeaderText = "Original Path";
+                        dgvExportedIcons.Columns["DateSent"].HeaderText = "Date Exported";
+
+                        // Auto-size columns
+                        dgvExportedIcons.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                    }
+
+                    toolStripStatusLabel.Text = $"Loaded {response.Result.Rows.Count} exported icons for project: {SelectedProject.Name}";
+                }
+                else
+                {
+                    string errorMsg = response.Errors != null && response.Errors.Count > 0
+                        ? response.Errors[0].Message
+                        : "Unknown error";
+                    System.Diagnostics.Debug.WriteLine($"Query failed: {errorMsg}");
+                    MessageBoxDialog.Show($"Error loading exported icons:\n\n{errorMsg}",
+                        "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in LoadExportedIcons: {ex.Message}\n{ex.StackTrace}");
+                MessageBoxDialog.Show($"Error loading exported icons:\n\n{ex.Message}",
+                    "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            }
+        }
+
+        private void btnRefreshExported_Click(object sender, EventArgs e)
+        {
+            if (SelectedProject == null)
+            {
+                MessageBoxDialog.Show("Please open a project first!\n\nGo to Project → Open Project",
+                    "Refresh", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                return;
+            }
+
+            LoadExportedIcons();
+        }
+
+        private void btnRemoveExported_Click(object sender, EventArgs e)
+        {
+            if (SelectedProject == null)
+            {
+                MessageBoxDialog.Show("Please open a project first!",
+                    "Remove", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                return;
+            }
+
+            if (dgvExportedIcons.SelectedRows.Count == 0)
+            {
+                MessageBoxDialog.Show("Please select at least one exported icon to remove.",
+                    "Remove", MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                return;
+            }
+
+            try
+            {
+                var selectedRows = dgvExportedIcons.SelectedRows;
+                int count = selectedRows.Count;
+
+                // Confirm removal
+                string message = $"Are you sure you want to remove {count} icon(s) from the project?\n\n" +
+                                $"This will:\n" +
+                                $"- Remove the icons from the ProjectIcons database\n" +
+                                $"- Remove the files from the project folder\n" +
+                                $"- Remove references from .resx file (if applicable)\n" +
+                                $"- Update the project file (if applicable)\n\n" +
+                                $"This action cannot be undone!";
+
+                DialogResult confirmResult = MessageBoxDialog.Show(message, "Confirm Removal",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, themeManager1.Theme);
+
+                if (confirmResult != DialogResult.Yes)
+                    return;
+
+                int successCount = 0;
+                List<string> errors = new List<string>();
+
+                foreach (DataGridViewRow row in selectedRows)
+                {
+                    int projectIconId = Convert.ToInt32(row.Cells["Id"].Value);
+                    int iconFileId = Convert.ToInt32(row.Cells["IconFile"].Value);
+                    string fileName = row.Cells["FileName"].ToString();
+                    string extension = row.Cells["Extension"].ToString();
+
+                    try
+                    {
+                        // Build file path
+                        string resourceFolder = Path.Combine(SelectedProject.Path, SelectedProject.ResourceFolder);
+                        string resourceName = fileName; // Already cleaned
+                        string filePath = Path.Combine(resourceFolder, resourceName + extension);
+
+                        // Delete physical file if it exists
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
+
+                        // Remove from .resx file if applicable
+                        if (SelectedProject.SaveIconsTo == "File" || SelectedProject.SaveIconsTo == "Both")
+                        {
+                            if (!string.IsNullOrEmpty(SelectedProject.ResourceFile) && File.Exists(SelectedProject.ResourceFile))
+                            {
+                                // Read the .resx file and remove the resource
+                                System.Resources.ResXResourceReader reader = new System.Resources.ResXResourceReader(SelectedProject.ResourceFile);
+                                System.Resources.ResXResourceWriter writer = new System.Resources.ResXResourceWriter(SelectedProject.ResourceFile + ".tmp");
+
+                                foreach (System.Collections.DictionaryEntry entry in reader)
+                                {
+                                    string key = entry.Key.ToString();
+                                    if (key != resourceName)
+                                    {
+                                        writer.AddResource(key, entry.Value);
+                                    }
+                                }
+
+                                reader.Close();
+                                writer.Close();
+
+                                // Replace original with temp
+                                File.Delete(SelectedProject.ResourceFile);
+                                File.Move(SelectedProject.ResourceFile + ".tmp", SelectedProject.ResourceFile);
+                            }
+                        }
+
+                        // Remove from project file if UpdateProjectFile is enabled
+                        if (SelectedProject.UpdateProjectFile != 0)
+                        {
+                            string projectFilePath = SelectedProject.ProjectFile;
+                            if (!Path.IsPathRooted(projectFilePath))
+                            {
+                                projectFilePath = Path.Combine(SelectedProject.Path, projectFilePath);
+                            }
+
+                            if (File.Exists(projectFilePath))
+                            {
+                                // Load project XML
+                                System.Xml.Linq.XDocument xdoc = System.Xml.Linq.XDocument.Load(projectFilePath);
+                                System.Xml.Linq.XNamespace ns = xdoc.Root.GetDefaultNamespace();
+
+                                // Find and remove the Content element
+                                string relativePath = Path.Combine(SelectedProject.ResourceFolder, resourceName + extension).Replace("\\", "/");
+                                var contentElement = xdoc.Descendants(ns + "Content")
+                                    .FirstOrDefault(elem => elem.Attribute("Include")?.Value == relativePath);
+
+                                if (contentElement != null)
+                                {
+                                    contentElement.Remove();
+                                    xdoc.Save(projectFilePath);
+                                }
+                            }
+                        }
+
+                        // Delete from ProjectIcons database
+                        string deleteSql = $"DELETE FROM ProjectIcons WHERE Id = {projectIconId}";
+                        var deleteResponse = conx.ExecuteNonQuery(deleteSql);
+
+                        if (deleteResponse.IsOK)
+                        {
+                            successCount++;
+                        }
+                        else
+                        {
+                            errors.Add($"{fileName}: Failed to delete from database");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"{fileName}: {ex.Message}");
+                    }
+                }
+
+                // Show results
+                string resultMessage = $"Successfully removed {successCount} icon(s) from project.";
+                if (errors.Count > 0)
+                {
+                    resultMessage += $"\n\nErrors:\n{string.Join("\n", errors)}";
+                    MessageBoxDialog.Show(resultMessage, "Removal Complete",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                }
+                else
+                {
+                    MessageBoxDialog.Show(resultMessage, "Removal Complete",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                }
+
+                // Reload the grid
+                LoadExportedIcons();
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error removing icons:\n\n{ex.Message}",
+                    "Remove Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            }
+        }
+
+        private void btnReExport_Click(object sender, EventArgs e)
+        {
+            if (SelectedProject == null)
+            {
+                MessageBoxDialog.Show("Please open a project first!",
+                    "Re-export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                return;
+            }
+
+            if (dgvExportedIcons.SelectedRows.Count == 0)
+            {
+                MessageBoxDialog.Show("Please select at least one exported icon to re-export.",
+                    "Re-export", MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                return;
+            }
+
+            try
+            {
+                var selectedRows = dgvExportedIcons.SelectedRows;
+
+                // Confirm re-export
+                string message = $"Are you sure you want to re-export {selectedRows.Count} icon(s)?\n\n" +
+                                $"This will overwrite existing files.";
+
+                DialogResult confirmResult = MessageBoxDialog.Show(message, "Confirm Re-export",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, themeManager1.Theme);
+
+                if (confirmResult != DialogResult.Yes)
+                    return;
+
+                // Prepare icon data for export
+                List<IconExportData> iconsToExport = new List<IconExportData>();
+
+                foreach (DataGridViewRow row in selectedRows)
+                {
+                    int iconFileId = Convert.ToInt32(row.Cells["IconFile"].Value);
+                    string fileName = row.Cells["FileName"].ToString();
+                    string extension = row.Cells["Extension"].ToString();
+
+                    // Get binary data from database
+                    string sql = "SELECT BinData FROM IconFiles WHERE Id = @id";
+                    var parameters = new Dictionary<string, string>
+                    {
+                        { "@id", iconFileId.ToString() }
+                    };
+
+                    var response = conx.ExecuteTable(sql, parameters);
+
+                    if (response.IsOK && response.Result.Rows.Count > 0)
+                    {
+                        byte[] binData = response.Result.Rows[0]["BinData"] as byte[];
+
+                        if (binData != null && binData.Length > 0)
+                        {
+                            iconsToExport.Add(new IconExportData
+                            {
+                                IconFileId = iconFileId,
+                                FileName = fileName,
+                                Extension = extension,
+                                BinData = binData
+                            });
+                        }
+                    }
+                }
+
+                if (iconsToExport.Count == 0)
+                {
+                    MessageBoxDialog.Show("No valid icons to re-export.",
+                        "Re-export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                    return;
+                }
+
+                // Perform export
+                ExportManager exportManager = new ExportManager(conx);
+                ExportResult result = exportManager.ExportIcons(SelectedProject, iconsToExport);
+
+                // Show results
+                if (result.HasErrors)
+                {
+                    string errors = string.Join("\n", result.Errors);
+                    MessageBoxDialog.Show($"Re-export failed with errors:\n\n{errors}",
+                        "Re-export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                }
+                else if (result.IsSuccess)
+                {
+                    string successMessage = $"Successfully re-exported {result.SuccessCount} icon(s)!";
+
+                    if (result.Warnings.Count > 0)
+                    {
+                        successMessage += $"\n\nWarnings:\n{string.Join("\n", result.Warnings)}";
+                    }
+
+                    MessageBoxDialog.Show(successMessage, "Re-export Successful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+
+                    // Reload the grid
+                    LoadExportedIcons();
+                }
+                else
+                {
+                    MessageBoxDialog.Show("No icons were re-exported.", "Re-export",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error during re-export:\n\n{ex.Message}",
+                    "Re-export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            }
+        }
+
+        private void btnOpenInExplorer_Click(object sender, EventArgs e)
+        {
+            if (SelectedProject == null)
+            {
+                MessageBoxDialog.Show("Please open a project first!",
+                    "Open in Explorer", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                return;
+            }
+
+            if (dgvExportedIcons.SelectedRows.Count == 0)
+            {
+                MessageBoxDialog.Show("Please select an exported icon to open its location.",
+                    "Open in Explorer", MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                return;
+            }
+
+            try
+            {
+                DataGridViewRow row = dgvExportedIcons.SelectedRows[0];
+                string fileName = row.Cells["FileName"].ToString();
+                string extension = row.Cells["Extension"].ToString();
+
+                // Build file path
+                string resourceFolder = Path.Combine(SelectedProject.Path, SelectedProject.ResourceFolder);
+                string filePath = Path.Combine(resourceFolder, fileName + extension);
+
+                if (File.Exists(filePath))
+                {
+                    // Open Windows Explorer and select the file
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+                }
+                else
+                {
+                    MessageBoxDialog.Show($"File not found:\n\n{filePath}\n\nThe file may have been moved or deleted.",
+                        "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error opening file location:\n\n{ex.Message}",
+                    "Explorer Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            }
+        }
+
+        private void mainTabControl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // When switching to Exported Icons tab, load the data
+            if (mainTabControl.SelectedIndex == 1) // Exported Icons tab
+            {
+                LoadExportedIcons();
+            }
+        }
     }
 }

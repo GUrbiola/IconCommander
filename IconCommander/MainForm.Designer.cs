@@ -77,8 +77,19 @@ namespace IconCommander
             this.btnExportToProject = new System.Windows.Forms.Button();
             this.centerRightSplitContainer = new System.Windows.Forms.SplitContainer();
             this.centerPanel = new System.Windows.Forms.Panel();
+            this.mainTabControl = new System.Windows.Forms.TabControl();
+            this.tabIconLibrary = new System.Windows.Forms.TabPage();
             this.iconsFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.topCenterPanel = new System.Windows.Forms.Panel();
+            this.tabExportedIcons = new System.Windows.Forms.TabPage();
+            this.exportedIconsPanel = new System.Windows.Forms.Panel();
+            this.dgvExportedIcons = new System.Windows.Forms.DataGridView();
+            this.exportedIconsToolStrip = new System.Windows.Forms.ToolStrip();
+            this.btnRefreshExported = new System.Windows.Forms.ToolStripButton();
+            this.btnRemoveExported = new System.Windows.Forms.ToolStripButton();
+            this.btnReExport = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnOpenInExplorer = new System.Windows.Forms.ToolStripButton();
             this.labTags = new System.Windows.Forms.Label();
             this.labIconName = new System.Windows.Forms.Label();
             this.btnNextPage = new System.Windows.Forms.Button();
@@ -109,7 +120,13 @@ namespace IconCommander
             this.centerRightSplitContainer.Panel2.SuspendLayout();
             this.centerRightSplitContainer.SuspendLayout();
             this.centerPanel.SuspendLayout();
+            this.mainTabControl.SuspendLayout();
+            this.tabIconLibrary.SuspendLayout();
             this.topCenterPanel.SuspendLayout();
+            this.tabExportedIcons.SuspendLayout();
+            this.exportedIconsPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvExportedIcons)).BeginInit();
+            this.exportedIconsToolStrip.SuspendLayout();
             this.rightPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -566,27 +583,140 @@ namespace IconCommander
             this.centerRightSplitContainer.Size = new System.Drawing.Size(1292, 542);
             this.centerRightSplitContainer.SplitterDistance = 1062;
             this.centerRightSplitContainer.TabIndex = 0;
-            // 
+            //
             // centerPanel
-            // 
-            this.centerPanel.Controls.Add(this.iconsFlowPanel);
-            this.centerPanel.Controls.Add(this.topCenterPanel);
+            //
+            this.centerPanel.Controls.Add(this.mainTabControl);
             this.centerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.centerPanel.Location = new System.Drawing.Point(0, 0);
             this.centerPanel.Name = "centerPanel";
             this.centerPanel.Size = new System.Drawing.Size(1062, 542);
             this.centerPanel.TabIndex = 0;
+            //
+            // mainTabControl
+            //
+            this.mainTabControl.Controls.Add(this.tabIconLibrary);
+            this.mainTabControl.Controls.Add(this.tabExportedIcons);
+            this.mainTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainTabControl.Location = new System.Drawing.Point(0, 0);
+            this.mainTabControl.Name = "mainTabControl";
+            this.mainTabControl.SelectedIndex = 0;
+            this.mainTabControl.Size = new System.Drawing.Size(1062, 542);
+            this.mainTabControl.TabIndex = 0;
+            this.mainTabControl.SelectedIndexChanged += new System.EventHandler(this.mainTabControl_SelectedIndexChanged);
+            //
+            // tabIconLibrary
+            //
+            this.tabIconLibrary.Controls.Add(this.iconsFlowPanel);
+            this.tabIconLibrary.Controls.Add(this.topCenterPanel);
+            this.tabIconLibrary.Location = new System.Drawing.Point(4, 22);
+            this.tabIconLibrary.Name = "tabIconLibrary";
+            this.tabIconLibrary.Padding = new System.Windows.Forms.Padding(3);
+            this.tabIconLibrary.Size = new System.Drawing.Size(1054, 516);
+            this.tabIconLibrary.TabIndex = 0;
+            this.tabIconLibrary.Text = "Icon Library";
+            this.tabIconLibrary.UseVisualStyleBackColor = true;
             // 
             // iconsFlowPanel
             // 
             this.iconsFlowPanel.AutoScroll = true;
             this.iconsFlowPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.iconsFlowPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.iconsFlowPanel.Location = new System.Drawing.Point(0, 54);
+            this.iconsFlowPanel.Location = new System.Drawing.Point(3, 57);
             this.iconsFlowPanel.Name = "iconsFlowPanel";
             this.iconsFlowPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.iconsFlowPanel.Size = new System.Drawing.Size(1062, 488);
+            this.iconsFlowPanel.Size = new System.Drawing.Size(1048, 456);
             this.iconsFlowPanel.TabIndex = 1;
+            //
+            // tabExportedIcons
+            //
+            this.tabExportedIcons.Controls.Add(this.exportedIconsPanel);
+            this.tabExportedIcons.Location = new System.Drawing.Point(4, 22);
+            this.tabExportedIcons.Name = "tabExportedIcons";
+            this.tabExportedIcons.Padding = new System.Windows.Forms.Padding(3);
+            this.tabExportedIcons.Size = new System.Drawing.Size(1054, 516);
+            this.tabExportedIcons.TabIndex = 1;
+            this.tabExportedIcons.Text = "Exported Icons";
+            this.tabExportedIcons.UseVisualStyleBackColor = true;
+            //
+            // exportedIconsPanel
+            //
+            this.exportedIconsPanel.Controls.Add(this.dgvExportedIcons);
+            this.exportedIconsPanel.Controls.Add(this.exportedIconsToolStrip);
+            this.exportedIconsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.exportedIconsPanel.Location = new System.Drawing.Point(3, 3);
+            this.exportedIconsPanel.Name = "exportedIconsPanel";
+            this.exportedIconsPanel.Size = new System.Drawing.Size(1048, 510);
+            this.exportedIconsPanel.TabIndex = 0;
+            //
+            // dgvExportedIcons
+            //
+            this.dgvExportedIcons.AllowUserToAddRows = false;
+            this.dgvExportedIcons.AllowUserToDeleteRows = false;
+            this.dgvExportedIcons.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvExportedIcons.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvExportedIcons.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvExportedIcons.Location = new System.Drawing.Point(0, 25);
+            this.dgvExportedIcons.Name = "dgvExportedIcons";
+            this.dgvExportedIcons.ReadOnly = true;
+            this.dgvExportedIcons.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvExportedIcons.Size = new System.Drawing.Size(1048, 485);
+            this.dgvExportedIcons.TabIndex = 0;
+            //
+            // exportedIconsToolStrip
+            //
+            this.exportedIconsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnRefreshExported,
+            this.btnRemoveExported,
+            this.btnReExport,
+            this.toolStripSeparator1,
+            this.btnOpenInExplorer});
+            this.exportedIconsToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.exportedIconsToolStrip.Name = "exportedIconsToolStrip";
+            this.exportedIconsToolStrip.Size = new System.Drawing.Size(1048, 25);
+            this.exportedIconsToolStrip.TabIndex = 1;
+            this.exportedIconsToolStrip.Text = "toolStrip1";
+            //
+            // btnRefreshExported
+            //
+            this.btnRefreshExported.Image = global::IconCommander.Properties.Resources.Next;
+            this.btnRefreshExported.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRefreshExported.Name = "btnRefreshExported";
+            this.btnRefreshExported.Size = new System.Drawing.Size(66, 22);
+            this.btnRefreshExported.Text = "Refresh";
+            this.btnRefreshExported.Click += new System.EventHandler(this.btnRefreshExported_Click);
+            //
+            // btnRemoveExported
+            //
+            this.btnRemoveExported.Image = global::IconCommander.Properties.Resources.Stop;
+            this.btnRemoveExported.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRemoveExported.Name = "btnRemoveExported";
+            this.btnRemoveExported.Size = new System.Drawing.Size(70, 22);
+            this.btnRemoveExported.Text = "Remove";
+            this.btnRemoveExported.Click += new System.EventHandler(this.btnRemoveExported_Click);
+            //
+            // btnReExport
+            //
+            this.btnReExport.Image = global::IconCommander.Properties.Resources.Save;
+            this.btnReExport.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnReExport.Name = "btnReExport";
+            this.btnReExport.Size = new System.Drawing.Size(75, 22);
+            this.btnReExport.Text = "Re-export";
+            this.btnReExport.Click += new System.EventHandler(this.btnReExport_Click);
+            //
+            // toolStripSeparator1
+            //
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            //
+            // btnOpenInExplorer
+            //
+            this.btnOpenInExplorer.Image = global::IconCommander.Properties.Resources.Open;
+            this.btnOpenInExplorer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOpenInExplorer.Name = "btnOpenInExplorer";
+            this.btnOpenInExplorer.Size = new System.Drawing.Size(117, 22);
+            this.btnOpenInExplorer.Text = "Open in Explorer";
+            this.btnOpenInExplorer.Click += new System.EventHandler(this.btnOpenInExplorer_Click);
             // 
             // topCenterPanel
             // 
@@ -799,8 +929,16 @@ namespace IconCommander
             ((System.ComponentModel.ISupportInitialize)(this.centerRightSplitContainer)).EndInit();
             this.centerRightSplitContainer.ResumeLayout(false);
             this.centerPanel.ResumeLayout(false);
+            this.mainTabControl.ResumeLayout(false);
+            this.tabIconLibrary.ResumeLayout(false);
             this.topCenterPanel.ResumeLayout(false);
             this.topCenterPanel.PerformLayout();
+            this.tabExportedIcons.ResumeLayout(false);
+            this.exportedIconsPanel.ResumeLayout(false);
+            this.exportedIconsPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvExportedIcons)).EndInit();
+            this.exportedIconsToolStrip.ResumeLayout(false);
+            this.exportedIconsToolStrip.PerformLayout();
             this.rightPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -856,6 +994,17 @@ namespace IconCommander
         private System.Windows.Forms.Button btnRemoveFromBuffer;
         private System.Windows.Forms.SplitContainer centerRightSplitContainer;
         private System.Windows.Forms.Panel centerPanel;
+        private System.Windows.Forms.TabControl mainTabControl;
+        private System.Windows.Forms.TabPage tabIconLibrary;
+        private System.Windows.Forms.TabPage tabExportedIcons;
+        private System.Windows.Forms.Panel exportedIconsPanel;
+        private System.Windows.Forms.DataGridView dgvExportedIcons;
+        private System.Windows.Forms.ToolStrip exportedIconsToolStrip;
+        private System.Windows.Forms.ToolStripButton btnRefreshExported;
+        private System.Windows.Forms.ToolStripButton btnRemoveExported;
+        private System.Windows.Forms.ToolStripButton btnReExport;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton btnOpenInExplorer;
         private System.Windows.Forms.Panel topCenterPanel;
         private System.Windows.Forms.ComboBox cmbIconSize;
         private System.Windows.Forms.Label lblIconSize;
