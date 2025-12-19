@@ -322,11 +322,21 @@ namespace IconCommander
                         writer.AddResource((System.Resources.ResXDataNode)kvp.Value);
                     }
 
-                    // Add new icon resource
+                    // Add new icon/image resource - use appropriate type based on extension
                     using (var ms = new MemoryStream(binData))
                     {
-                        System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
-                        writer.AddResource(finalResourceName, img);
+                        if (extension.ToLower() == ".ico")
+                        {
+                            // Add as Icon type
+                            System.Drawing.Icon icon = new System.Drawing.Icon(ms);
+                            writer.AddResource(finalResourceName, icon);
+                        }
+                        else
+                        {
+                            // Add as Bitmap/Image type for .png, .jpg, .bmp, etc.
+                            System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
+                            writer.AddResource(finalResourceName, img);
+                        }
                     }
 
                     writer.Generate();
