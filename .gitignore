@@ -387,3 +387,5 @@ copilot-chat/
 
 # Temporary/misc files
 nul
+/DEVELOPER_GUIDE.md
+/ICON_IMPORT_GUIDE.md
