@@ -67,29 +67,23 @@ namespace IconCommander
             this.lblCollections = new System.Windows.Forms.Label();
             this.chkListTypes = new System.Windows.Forms.CheckedListBox();
             this.lblTypes = new System.Windows.Forms.Label();
+            this.chkListSizes = new System.Windows.Forms.CheckedListBox();
+            this.lblSizes = new System.Windows.Forms.Label();
             this.mainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.leftPanel = new System.Windows.Forms.Panel();
             this.bufferFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
-            this.grpProjectInfo = new System.Windows.Forms.GroupBox();
             this.lblBuffer = new System.Windows.Forms.Label();
             this.btnRemoveFromBuffer = new System.Windows.Forms.Button();
             this.btnMerge = new System.Windows.Forms.Button();
             this.btnExportToProject = new System.Windows.Forms.Button();
+            this.grpProjectInfo = new System.Windows.Forms.GroupBox();
+            this.panelProjectInfo = new System.Windows.Forms.Panel();
             this.centerRightSplitContainer = new System.Windows.Forms.SplitContainer();
             this.centerPanel = new System.Windows.Forms.Panel();
             this.mainTabControl = new System.Windows.Forms.TabControl();
             this.tabIconLibrary = new System.Windows.Forms.TabPage();
             this.iconsFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.topCenterPanel = new System.Windows.Forms.Panel();
-            this.tabExportedIcons = new System.Windows.Forms.TabPage();
-            this.exportedIconsPanel = new System.Windows.Forms.Panel();
-            this.dgvExportedIcons = new System.Windows.Forms.DataGridView();
-            this.exportedIconsToolStrip = new System.Windows.Forms.ToolStrip();
-            this.btnRefreshExported = new System.Windows.Forms.ToolStripButton();
-            this.btnRemoveExported = new System.Windows.Forms.ToolStripButton();
-            this.btnReExport = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnOpenInExplorer = new System.Windows.Forms.ToolStripButton();
             this.labTags = new System.Windows.Forms.Label();
             this.labIconName = new System.Windows.Forms.Label();
             this.btnNextPage = new System.Windows.Forms.Button();
@@ -100,12 +94,20 @@ namespace IconCommander
             this.lblTotalResults = new System.Windows.Forms.Label();
             this.cmbIconSize = new System.Windows.Forms.ComboBox();
             this.lblIconSize = new System.Windows.Forms.Label();
+            this.tabExportedIcons = new System.Windows.Forms.TabPage();
+            this.exportedIconsPanel = new System.Windows.Forms.Panel();
+            this.dgvExportedIcons = new System.Windows.Forms.DataGridView();
+            this.exportedIconsToolStrip = new System.Windows.Forms.ToolStrip();
+            this.btnRefreshExported = new System.Windows.Forms.ToolStripButton();
+            this.btnRemoveExported = new System.Windows.Forms.ToolStripButton();
+            this.btnReExport = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnOpenInExplorer = new System.Windows.Forms.ToolStripButton();
             this.rightPanel = new System.Windows.Forms.Panel();
             this.btnMoveToBuffer = new System.Windows.Forms.Button();
             this.iconDetailsFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.lblIconDetails = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.panelProjectInfo = new System.Windows.Forms.Panel();
             this.statusStrip.SuspendLayout();
             this.menuStrip.SuspendLayout();
             this.topFilterPanel.SuspendLayout();
@@ -186,25 +188,25 @@ namespace IconCommander
             this.projectToolStripMenuItem.Name = "projectToolStripMenuItem";
             this.projectToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
             this.projectToolStripMenuItem.Text = "&Project";
-            //
+            // 
             // createProjectToolStripMenuItem
-            //
+            // 
             this.createProjectToolStripMenuItem.Name = "createProjectToolStripMenuItem";
-            this.createProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.createProjectToolStripMenuItem.Text = "&Create Project...";
             this.createProjectToolStripMenuItem.Click += new System.EventHandler(this.createProjectToolStripMenuItem_Click);
-            //
+            // 
             // openProjectToolStripMenuItem
-            //
+            // 
             this.openProjectToolStripMenuItem.Name = "openProjectToolStripMenuItem";
-            this.openProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.openProjectToolStripMenuItem.Text = "&Open Project...";
             this.openProjectToolStripMenuItem.Click += new System.EventHandler(this.openProjectToolStripMenuItem_Click);
-            //
+            // 
             // editProjectToolStripMenuItem
-            //
+            // 
             this.editProjectToolStripMenuItem.Name = "editProjectToolStripMenuItem";
-            this.editProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.editProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.editProjectToolStripMenuItem.Text = "&Edit Project...";
             this.editProjectToolStripMenuItem.Click += new System.EventHandler(this.editProjectToolStripMenuItem_Click);
             // 
@@ -223,7 +225,7 @@ namespace IconCommander
             this.collectionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.manageToolStripMenuItem});
             this.collectionsToolStripMenuItem.Name = "collectionsToolStripMenuItem";
-            this.collectionsToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.collectionsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.collectionsToolStripMenuItem.Text = "Collections";
             // 
             // manageToolStripMenuItem
@@ -239,7 +241,7 @@ namespace IconCommander
             this.manageToolStripMenuItem1,
             this.importVeinToolStripMenuItem});
             this.veinsToolStripMenuItem.Name = "veinsToolStripMenuItem";
-            this.veinsToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.veinsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.veinsToolStripMenuItem.Text = "Veins";
             // 
             // manageToolStripMenuItem1
@@ -262,20 +264,20 @@ namespace IconCommander
             this.manageToolStripMenuItem2,
             this.importIconsToolStripMenuItem});
             this.iconsToolStripMenuItem1.Name = "iconsToolStripMenuItem1";
-            this.iconsToolStripMenuItem1.Size = new System.Drawing.Size(133, 22);
+            this.iconsToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.iconsToolStripMenuItem1.Text = "Icons";
             // 
             // manageToolStripMenuItem2
             // 
             this.manageToolStripMenuItem2.Name = "manageToolStripMenuItem2";
-            this.manageToolStripMenuItem2.Size = new System.Drawing.Size(150, 22);
+            this.manageToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
             this.manageToolStripMenuItem2.Text = "Manage...";
             this.manageToolStripMenuItem2.Click += new System.EventHandler(this.manageIconsToolStripMenuItem_Click);
             // 
             // importIconsToolStripMenuItem
             // 
             this.importIconsToolStripMenuItem.Name = "importIconsToolStripMenuItem";
-            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.importIconsToolStripMenuItem.Text = "Import Icons...";
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
@@ -340,11 +342,17 @@ namespace IconCommander
             this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
             this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
+            this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
+            this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
+            this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
+            this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
+            this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
+            this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ParentForm = this;
             this.themeManager1.Theme = ZidUtilities.CommonCode.Win.ZidThemes.Default;
-            // 
+            //
             // topFilterPanel
-            // 
+            //
             this.topFilterPanel.Controls.Add(this.btnApplyFilter);
             this.topFilterPanel.Controls.Add(this.txtSearch);
             this.topFilterPanel.Controls.Add(this.lblSearch);
@@ -354,6 +362,8 @@ namespace IconCommander
             this.topFilterPanel.Controls.Add(this.lblVeins);
             this.topFilterPanel.Controls.Add(this.tokenSelectCollections);
             this.topFilterPanel.Controls.Add(this.lblCollections);
+            this.topFilterPanel.Controls.Add(this.chkListSizes);
+            this.topFilterPanel.Controls.Add(this.lblSizes);
             this.topFilterPanel.Controls.Add(this.chkListTypes);
             this.topFilterPanel.Controls.Add(this.lblTypes);
             this.topFilterPanel.Dock = System.Windows.Forms.DockStyle.Top;
@@ -379,6 +389,7 @@ namespace IconCommander
             this.txtSearch.Name = "txtSearch";
             this.txtSearch.Size = new System.Drawing.Size(200, 20);
             this.txtSearch.TabIndex = 9;
+            this.txtSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtSearch_KeyPress);
             // 
             // lblSearch
             // 
@@ -456,16 +467,43 @@ namespace IconCommander
             this.chkListTypes.Name = "chkListTypes";
             this.chkListTypes.Size = new System.Drawing.Size(239, 64);
             this.chkListTypes.TabIndex = 1;
-            // 
+            //
             // lblTypes
-            // 
+            //
             this.lblTypes.AutoSize = true;
             this.lblTypes.Location = new System.Drawing.Point(11, 11);
             this.lblTypes.Name = "lblTypes";
             this.lblTypes.Size = new System.Drawing.Size(39, 13);
             this.lblTypes.TabIndex = 0;
             this.lblTypes.Text = "Types:";
-            // 
+            //
+            // chkListSizes
+            //
+            this.chkListSizes.CheckOnClick = true;
+            this.chkListSizes.FormattingEnabled = true;
+            this.chkListSizes.Items.AddRange(new object[] {
+            "16x16",
+            "24x24",
+            "32x32",
+            "48x48",
+            "64x64",
+            "128x128",
+            "256x256",
+            "512x512"});
+            this.chkListSizes.Location = new System.Drawing.Point(256, 28);
+            this.chkListSizes.Name = "chkListSizes";
+            this.chkListSizes.Size = new System.Drawing.Size(120, 64);
+            this.chkListSizes.TabIndex = 12;
+            //
+            // lblSizes
+            //
+            this.lblSizes.AutoSize = true;
+            this.lblSizes.Location = new System.Drawing.Point(256, 11);
+            this.lblSizes.Name = "lblSizes";
+            this.lblSizes.Size = new System.Drawing.Size(86, 13);
+            this.lblSizes.TabIndex = 11;
+            this.lblSizes.Text = "Available Sizes:";
+            //
             // mainSplitContainer
             // 
             this.mainSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -509,17 +547,6 @@ namespace IconCommander
             this.bufferFlowPanel.Name = "bufferFlowPanel";
             this.bufferFlowPanel.Size = new System.Drawing.Size(240, 267);
             this.bufferFlowPanel.TabIndex = 3;
-            // 
-            // grpProjectInfo
-            // 
-            this.grpProjectInfo.Controls.Add(this.panelProjectInfo);
-            this.grpProjectInfo.Dock = System.Windows.Forms.DockStyle.Top;
-            this.grpProjectInfo.Location = new System.Drawing.Point(5, 5);
-            this.grpProjectInfo.Name = "grpProjectInfo";
-            this.grpProjectInfo.Size = new System.Drawing.Size(240, 168);
-            this.grpProjectInfo.TabIndex = 1;
-            this.grpProjectInfo.TabStop = false;
-            this.grpProjectInfo.Text = "Current Project";
             // 
             // lblBuffer
             // 
@@ -565,6 +592,26 @@ namespace IconCommander
             this.btnExportToProject.UseVisualStyleBackColor = true;
             this.btnExportToProject.Click += new System.EventHandler(this.btnExportToProject_Click);
             // 
+            // grpProjectInfo
+            // 
+            this.grpProjectInfo.Controls.Add(this.panelProjectInfo);
+            this.grpProjectInfo.Dock = System.Windows.Forms.DockStyle.Top;
+            this.grpProjectInfo.Location = new System.Drawing.Point(5, 5);
+            this.grpProjectInfo.Name = "grpProjectInfo";
+            this.grpProjectInfo.Size = new System.Drawing.Size(240, 168);
+            this.grpProjectInfo.TabIndex = 1;
+            this.grpProjectInfo.TabStop = false;
+            this.grpProjectInfo.Text = "Current Project";
+            // 
+            // panelProjectInfo
+            // 
+            this.panelProjectInfo.AutoScroll = true;
+            this.panelProjectInfo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelProjectInfo.Location = new System.Drawing.Point(3, 16);
+            this.panelProjectInfo.Name = "panelProjectInfo";
+            this.panelProjectInfo.Size = new System.Drawing.Size(234, 149);
+            this.panelProjectInfo.TabIndex = 0;
+            // 
             // centerRightSplitContainer
             // 
             this.centerRightSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -583,18 +630,18 @@ namespace IconCommander
             this.centerRightSplitContainer.Size = new System.Drawing.Size(1292, 542);
             this.centerRightSplitContainer.SplitterDistance = 1062;
             this.centerRightSplitContainer.TabIndex = 0;
-            //
+            // 
             // centerPanel
-            //
+            // 
             this.centerPanel.Controls.Add(this.mainTabControl);
             this.centerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.centerPanel.Location = new System.Drawing.Point(0, 0);
             this.centerPanel.Name = "centerPanel";
             this.centerPanel.Size = new System.Drawing.Size(1062, 542);
             this.centerPanel.TabIndex = 0;
-            //
+            // 
             // mainTabControl
-            //
+            // 
             this.mainTabControl.Controls.Add(this.tabIconLibrary);
             this.mainTabControl.Controls.Add(this.tabExportedIcons);
             this.mainTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -604,9 +651,9 @@ namespace IconCommander
             this.mainTabControl.Size = new System.Drawing.Size(1062, 542);
             this.mainTabControl.TabIndex = 0;
             this.mainTabControl.SelectedIndexChanged += new System.EventHandler(this.mainTabControl_SelectedIndexChanged);
-            //
+            // 
             // tabIconLibrary
-            //
+            // 
             this.tabIconLibrary.Controls.Add(this.iconsFlowPanel);
             this.tabIconLibrary.Controls.Add(this.topCenterPanel);
             this.tabIconLibrary.Location = new System.Drawing.Point(4, 22);
@@ -627,96 +674,6 @@ namespace IconCommander
             this.iconsFlowPanel.Padding = new System.Windows.Forms.Padding(5);
             this.iconsFlowPanel.Size = new System.Drawing.Size(1048, 456);
             this.iconsFlowPanel.TabIndex = 1;
-            //
-            // tabExportedIcons
-            //
-            this.tabExportedIcons.Controls.Add(this.exportedIconsPanel);
-            this.tabExportedIcons.Location = new System.Drawing.Point(4, 22);
-            this.tabExportedIcons.Name = "tabExportedIcons";
-            this.tabExportedIcons.Padding = new System.Windows.Forms.Padding(3);
-            this.tabExportedIcons.Size = new System.Drawing.Size(1054, 516);
-            this.tabExportedIcons.TabIndex = 1;
-            this.tabExportedIcons.Text = "Exported Icons";
-            this.tabExportedIcons.UseVisualStyleBackColor = true;
-            //
-            // exportedIconsPanel
-            //
-            this.exportedIconsPanel.Controls.Add(this.dgvExportedIcons);
-            this.exportedIconsPanel.Controls.Add(this.exportedIconsToolStrip);
-            this.exportedIconsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.exportedIconsPanel.Location = new System.Drawing.Point(3, 3);
-            this.exportedIconsPanel.Name = "exportedIconsPanel";
-            this.exportedIconsPanel.Size = new System.Drawing.Size(1048, 510);
-            this.exportedIconsPanel.TabIndex = 0;
-            //
-            // dgvExportedIcons
-            //
-            this.dgvExportedIcons.AllowUserToAddRows = false;
-            this.dgvExportedIcons.AllowUserToDeleteRows = false;
-            this.dgvExportedIcons.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvExportedIcons.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvExportedIcons.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvExportedIcons.Location = new System.Drawing.Point(0, 25);
-            this.dgvExportedIcons.Name = "dgvExportedIcons";
-            this.dgvExportedIcons.ReadOnly = true;
-            this.dgvExportedIcons.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvExportedIcons.Size = new System.Drawing.Size(1048, 485);
-            this.dgvExportedIcons.TabIndex = 0;
-            //
-            // exportedIconsToolStrip
-            //
-            this.exportedIconsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnRefreshExported,
-            this.btnRemoveExported,
-            this.btnReExport,
-            this.toolStripSeparator1,
-            this.btnOpenInExplorer});
-            this.exportedIconsToolStrip.Location = new System.Drawing.Point(0, 0);
-            this.exportedIconsToolStrip.Name = "exportedIconsToolStrip";
-            this.exportedIconsToolStrip.Size = new System.Drawing.Size(1048, 25);
-            this.exportedIconsToolStrip.TabIndex = 1;
-            this.exportedIconsToolStrip.Text = "toolStrip1";
-            //
-            // btnRefreshExported
-            //
-            this.btnRefreshExported.Image = global::IconCommander.Properties.Resources.Next;
-            this.btnRefreshExported.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnRefreshExported.Name = "btnRefreshExported";
-            this.btnRefreshExported.Size = new System.Drawing.Size(66, 22);
-            this.btnRefreshExported.Text = "Refresh";
-            this.btnRefreshExported.Click += new System.EventHandler(this.btnRefreshExported_Click);
-            //
-            // btnRemoveExported
-            //
-            this.btnRemoveExported.Image = global::IconCommander.Properties.Resources.Stop;
-            this.btnRemoveExported.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnRemoveExported.Name = "btnRemoveExported";
-            this.btnRemoveExported.Size = new System.Drawing.Size(70, 22);
-            this.btnRemoveExported.Text = "Remove";
-            this.btnRemoveExported.Click += new System.EventHandler(this.btnRemoveExported_Click);
-            //
-            // btnReExport
-            //
-            this.btnReExport.Image = global::IconCommander.Properties.Resources.Save;
-            this.btnReExport.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnReExport.Name = "btnReExport";
-            this.btnReExport.Size = new System.Drawing.Size(75, 22);
-            this.btnReExport.Text = "Re-export";
-            this.btnReExport.Click += new System.EventHandler(this.btnReExport_Click);
-            //
-            // toolStripSeparator1
-            //
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            //
-            // btnOpenInExplorer
-            //
-            this.btnOpenInExplorer.Image = global::IconCommander.Properties.Resources.Open;
-            this.btnOpenInExplorer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOpenInExplorer.Name = "btnOpenInExplorer";
-            this.btnOpenInExplorer.Size = new System.Drawing.Size(117, 22);
-            this.btnOpenInExplorer.Text = "Open in Explorer";
-            this.btnOpenInExplorer.Click += new System.EventHandler(this.btnOpenInExplorer_Click);
             // 
             // topCenterPanel
             // 
@@ -731,10 +688,10 @@ namespace IconCommander
             this.topCenterPanel.Controls.Add(this.cmbIconSize);
             this.topCenterPanel.Controls.Add(this.lblIconSize);
             this.topCenterPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.topCenterPanel.Location = new System.Drawing.Point(0, 0);
+            this.topCenterPanel.Location = new System.Drawing.Point(3, 3);
             this.topCenterPanel.Name = "topCenterPanel";
             this.topCenterPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.topCenterPanel.Size = new System.Drawing.Size(1062, 54);
+            this.topCenterPanel.Size = new System.Drawing.Size(1048, 54);
             this.topCenterPanel.TabIndex = 0;
             // 
             // labTags
@@ -843,6 +800,96 @@ namespace IconCommander
             this.lblIconSize.TabIndex = 0;
             this.lblIconSize.Text = "Display Size:";
             // 
+            // tabExportedIcons
+            // 
+            this.tabExportedIcons.Controls.Add(this.exportedIconsPanel);
+            this.tabExportedIcons.Location = new System.Drawing.Point(4, 22);
+            this.tabExportedIcons.Name = "tabExportedIcons";
+            this.tabExportedIcons.Padding = new System.Windows.Forms.Padding(3);
+            this.tabExportedIcons.Size = new System.Drawing.Size(1054, 516);
+            this.tabExportedIcons.TabIndex = 1;
+            this.tabExportedIcons.Text = "Exported Icons";
+            this.tabExportedIcons.UseVisualStyleBackColor = true;
+            // 
+            // exportedIconsPanel
+            // 
+            this.exportedIconsPanel.Controls.Add(this.dgvExportedIcons);
+            this.exportedIconsPanel.Controls.Add(this.exportedIconsToolStrip);
+            this.exportedIconsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.exportedIconsPanel.Location = new System.Drawing.Point(3, 3);
+            this.exportedIconsPanel.Name = "exportedIconsPanel";
+            this.exportedIconsPanel.Size = new System.Drawing.Size(1048, 510);
+            this.exportedIconsPanel.TabIndex = 0;
+            // 
+            // dgvExportedIcons
+            // 
+            this.dgvExportedIcons.AllowUserToAddRows = false;
+            this.dgvExportedIcons.AllowUserToDeleteRows = false;
+            this.dgvExportedIcons.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvExportedIcons.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvExportedIcons.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvExportedIcons.Location = new System.Drawing.Point(0, 25);
+            this.dgvExportedIcons.Name = "dgvExportedIcons";
+            this.dgvExportedIcons.ReadOnly = true;
+            this.dgvExportedIcons.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvExportedIcons.Size = new System.Drawing.Size(1048, 485);
+            this.dgvExportedIcons.TabIndex = 0;
+            // 
+            // exportedIconsToolStrip
+            // 
+            this.exportedIconsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnRefreshExported,
+            this.btnRemoveExported,
+            this.btnReExport,
+            this.toolStripSeparator1,
+            this.btnOpenInExplorer});
+            this.exportedIconsToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.exportedIconsToolStrip.Name = "exportedIconsToolStrip";
+            this.exportedIconsToolStrip.Size = new System.Drawing.Size(1048, 25);
+            this.exportedIconsToolStrip.TabIndex = 1;
+            this.exportedIconsToolStrip.Text = "toolStrip1";
+            // 
+            // btnRefreshExported
+            // 
+            this.btnRefreshExported.Image = global::IconCommander.Properties.Resources.Next;
+            this.btnRefreshExported.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRefreshExported.Name = "btnRefreshExported";
+            this.btnRefreshExported.Size = new System.Drawing.Size(66, 22);
+            this.btnRefreshExported.Text = "Refresh";
+            this.btnRefreshExported.Click += new System.EventHandler(this.btnRefreshExported_Click);
+            // 
+            // btnRemoveExported
+            // 
+            this.btnRemoveExported.Image = global::IconCommander.Properties.Resources.Stop;
+            this.btnRemoveExported.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRemoveExported.Name = "btnRemoveExported";
+            this.btnRemoveExported.Size = new System.Drawing.Size(70, 22);
+            this.btnRemoveExported.Text = "Remove";
+            this.btnRemoveExported.Click += new System.EventHandler(this.btnRemoveExported_Click);
+            // 
+            // btnReExport
+            // 
+            this.btnReExport.Image = global::IconCommander.Properties.Resources.Save;
+            this.btnReExport.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnReExport.Name = "btnReExport";
+            this.btnReExport.Size = new System.Drawing.Size(79, 22);
+            this.btnReExport.Text = "Re-export";
+            this.btnReExport.Click += new System.EventHandler(this.btnReExport_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnOpenInExplorer
+            // 
+            this.btnOpenInExplorer.Image = global::IconCommander.Properties.Resources.Open;
+            this.btnOpenInExplorer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOpenInExplorer.Name = "btnOpenInExplorer";
+            this.btnOpenInExplorer.Size = new System.Drawing.Size(115, 22);
+            this.btnOpenInExplorer.Text = "Open in Explorer";
+            this.btnOpenInExplorer.Click += new System.EventHandler(this.btnOpenInExplorer_Click);
+            // 
             // rightPanel
             // 
             this.rightPanel.Controls.Add(this.btnMoveToBuffer);
@@ -886,15 +933,6 @@ namespace IconCommander
             this.lblIconDetails.TabIndex = 0;
             this.lblIconDetails.Text = "Icon Details";
             this.lblIconDetails.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // panelProjectInfo
-            // 
-            this.panelProjectInfo.AutoScroll = true;
-            this.panelProjectInfo.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelProjectInfo.Location = new System.Drawing.Point(3, 16);
-            this.panelProjectInfo.Name = "panelProjectInfo";
-            this.panelProjectInfo.Size = new System.Drawing.Size(234, 149);
-            this.panelProjectInfo.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -1023,6 +1061,8 @@ namespace IconCommander
         private System.Windows.Forms.Label labTags;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Panel panelProjectInfo;
+        private System.Windows.Forms.CheckedListBox chkListSizes;
+        private System.Windows.Forms.Label lblSizes;
     }
 }
 

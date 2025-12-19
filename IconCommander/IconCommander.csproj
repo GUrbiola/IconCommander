@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -35,7 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>VERT_pens.ico</ApplicationIcon>
+    <ApplicationIcon>Photographic_Filter.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ClosedXML, Version=0.87.0.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
@@ -147,12 +147,6 @@
     <Compile Include="Forms\MergeForm.Designer.cs">
       <DependentUpon>MergeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\IconBufferForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\IconBufferForm.Designer.cs">
-      <DependentUpon>IconBufferForm.cs</DependentUpon>
-    </Compile>
     <EmbeddedResource Include="Forms\CollectionsForm.resx">
       <DependentUpon>CollectionsForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -173,9 +167,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\MergeForm.resx">
       <DependentUpon>MergeForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\IconBufferForm.resx">
-      <DependentUpon>IconBufferForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -206,6 +197,7 @@
     <None Include="Resources\cancel.png" />
     <None Include="Resources\more_imports.png" />
     <Content Include="Dbs\MS SQL Db.sql" />
+    <Content Include="Photographic_Filter.ico" />
     <Content Include="Resources\Bookmark.png" />
     <Content Include="Resources\Book_32.png" />
     <Content Include="Resources\close_32x32.png" />
@@ -220,6 +212,13 @@
     <Content Include="Resources\Stop.png" />
     <Content Include="Resources\UnComment.png" />
     <Content Include="VERT_pens.ico" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_1.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_2.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_3.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_4.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_5.png" />
+    <Content Include="D:\Just For Fun\IconCommander\IconCommander\Resources\photographic_filters_6.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

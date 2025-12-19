@@ -228,6 +228,12 @@ namespace IconCommander
             {
                 chkListTypes.SetItemChecked(i, true);
             }
+
+            // Check all sizes by default
+            for (int i = 0; i < chkListSizes.Items.Count; i++)
+            {
+                chkListSizes.SetItemChecked(i, true);
+            }
         }
 
         private void MenuOption_Click(object sender, EventArgs e)
@@ -254,26 +260,41 @@ namespace IconCommander
 
         private void UpdateStatusBar(string dataBase)
         {
-            if (!string.IsNullOrEmpty(projectPath))
+            try
             {
-                projectStatusLabel.Text = $"Project: {SelectedProject.Name} ({SelectedProject.Path})";
+                if (!string.IsNullOrEmpty(projectPath))
+                {
+                    projectStatusLabel.Text = $"Project: {SelectedProject.Name} ({SelectedProject.Path})";
+                }
+                else
+                {
+                    projectStatusLabel.Text = "No project";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                projectStatusLabel.Text = "No project";
+                MessageBoxDialog.Show(ex.Message, "Error Loading Project Name/Path",  MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
             }
 
-            if (!databaseConnectionString.IsEmpty())
+            try
             {
-                if (Properties.Settings.Default.IsSqlite)
-                    databaseStatusLabel.Text = $"Sqlite: {dataBase}";
+                if (!databaseConnectionString.IsEmpty())
+                {
+                    if (Properties.Settings.Default.IsSqlite)
+                        databaseStatusLabel.Text = $"Sqlite: {dataBase}";
+                    else
+                        databaseStatusLabel.Text = $"MS SQL: {dataBase}";
+                }
                 else
-                    databaseStatusLabel.Text = $"MS SQL: {dataBase}";
+                {
+                    databaseStatusLabel.Text = "No database";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                databaseStatusLabel.Text = "No database";
+                MessageBoxDialog.Show(ex.Message, "Error Loading Project Name/Path", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
             }
+
         }
 
         private void createProjectToolStripMenuItem_Click(object sender, EventArgs e)
@@ -658,14 +679,14 @@ namespace IconCommander
 
         private void bufferToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (databaseConnectionString.IsEmpty())
-            {
-                MessageBoxDialog.Show("There is no database connection defined!", "Database Connection", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
-                return;
-            }
+            //if (databaseConnectionString.IsEmpty())
+            //{
+            //    MessageBoxDialog.Show("There is no database connection defined!", "Database Connection", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            //    return;
+            //}
 
-            IconBufferForm bufferForm = new IconBufferForm(databaseConnectionString, themeManager1.Theme, SelectedProject);
-            bufferForm.ShowDialog();
+            //IconBufferForm bufferForm = new IconBufferForm(databaseConnectionString, themeManager1.Theme, SelectedProject);
+            //bufferForm.ShowDialog();
         }
 
         private void manageCollectionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -839,6 +860,31 @@ namespace IconCommander
                 {
                     string searchText = txtSearch.Text.Trim();
                     sql.AppendLine($"{(hasWhereClause ? "AND" : "WHERE")} (i.Name LIKE '%{searchText}%' OR i.Id IN (SELECT Icon FROM IconTags WHERE Tag LIKE '%{searchText}%'))");
+                    hasWhereClause = true;
+                }
+
+                // Size filter - only apply if not all are selected
+                List<int> selectedSizes = new List<int>();
+                int totalSizes = chkListSizes.Items.Count;
+                int checkedSizesCount = 0;
+
+                for (int i = 0; i < chkListSizes.Items.Count; i++)
+                {
+                    if (chkListSizes.GetItemChecked(i))
+                    {
+                        checkedSizesCount++;
+                        string sizeText = chkListSizes.Items[i].ToString(); // e.g., "16x16"
+                        int dimension = int.Parse(sizeText.Split('x')[0]); // Get the dimension
+                        //int sizeValue = dimension * dimension; // Calculate area
+                        selectedSizes.Add(dimension);
+                    }
+                }
+
+                // Only apply size filter if at least one is selected and not all are selected
+                if (selectedSizes.Count > 0 && checkedSizesCount < totalSizes)
+                {
+                    string sizesFilter = string.Join(", ", selectedSizes);
+                    sql.AppendLine($"{(hasWhereClause ? "AND" : "WHERE")} EXISTS (SELECT 1 FROM IconFiles WHERE Icon = i.Id AND Size IN ({sizesFilter}))");
                     hasWhereClause = true;
                 }
 
@@ -1679,8 +1725,9 @@ namespace IconCommander
             int controlSpacing = 15;
 
             // Calculate proportional widths based on available space
-            int typesWidth = 239;  // Fixed width for checkbox list
-            int tokenSelectWidth = Math.Max(150, (availableWidth - typesWidth - controlSpacing * 4 - leftMargin - 220) / 3);
+            int typesWidth = 120;  // Fixed width for checkbox list (narrower now)
+            int sizesWidth = 120;  // Fixed width for sizes checkbox list
+            int tokenSelectWidth = Math.Max(150, (availableWidth - typesWidth - sizesWidth - controlSpacing * 5 - leftMargin - 220) / 3);
             int searchWidth = 200;
 
             int currentX = leftMargin;
@@ -1690,6 +1737,12 @@ namespace IconCommander
             chkListTypes.Location = new Point(currentX, topMargin + labelHeight + 2);
             chkListTypes.Width = typesWidth;
             currentX += typesWidth + controlSpacing;
+
+            // Position Sizes label and checklist
+            lblSizes.Location = new Point(currentX, topMargin);
+            chkListSizes.Location = new Point(currentX, topMargin + labelHeight + 2);
+            chkListSizes.Width = sizesWidth;
+            currentX += sizesWidth + controlSpacing;
 
             // Position Collections label and TokenSelect
             lblCollections.Location = new Point(currentX, topMargin);
@@ -2150,6 +2203,14 @@ namespace IconCommander
             if (mainTabControl.SelectedIndex == 1) // Exported Icons tab
             {
                 LoadExportedIcons();
+            }
+        }
+
+        private void txtSearch_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                btnApplyFilter_Click(null, null);
             }
         }
     }

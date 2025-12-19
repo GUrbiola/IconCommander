@@ -163,8 +163,7 @@ namespace IconCommander.Forms
 
 
                 // Set Collection as a list from database
-                SqliteConnector connector = new SqliteConnector(connectionString);
-                var collectionsResponse = connector.ExecuteTable("SELECT Id, Name FROM Collections ORDER BY Name");
+                var collectionsResponse = Conx.ExecuteTable("SELECT Id, Name FROM Collections ORDER BY Name");
                 if (collectionsResponse.IsOK && collectionsResponse.Result.Rows.Count > 0)
                 {
                     Dictionary<string, object> collections = new Dictionary<string, object>();
@@ -189,9 +188,9 @@ namespace IconCommander.Forms
                         sql = result.SqlServerScript;
                     
                     Conx.ExecuteNonQuery(sql);
-                    if (connector.Error)
+                    if (Conx.Error)
                     {
-                        MessageBoxDialog.Show($"Failed to create vein: {connector.LastMessage}", "Veins",
+                        MessageBoxDialog.Show($"Failed to create vein: {Conx.LastMessage}", "Veins",
                             MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
                     }
                     else
