@@ -168,6 +168,18 @@ namespace IconCommander
         private void ExportSingleIcon(Project project, int iconFileId, string fileName, string extension,
             byte[] binData, ExportResult result)
         {
+            // Ensure extension starts with a dot
+            if (!string.IsNullOrEmpty(extension) && !extension.StartsWith("."))
+            {
+                extension = "." + extension;
+            }
+
+            // If no extension provided, default to .png
+            if (string.IsNullOrEmpty(extension))
+            {
+                extension = ".png";
+            }
+
             string targetFileName = fileName;
             string fullFilePath = null;
 
@@ -180,20 +192,35 @@ namespace IconCommander
                 if (!Directory.Exists(resourceFolder))
                     Directory.CreateDirectory(resourceFolder);
 
-                // Resolve name conflicts
+                // Resolve name conflicts (returns filename WITHOUT extension)
                 targetFileName = ResolveNameConflict(resourceFolder, fileName, extension);
-                fullFilePath = Path.Combine(resourceFolder, targetFileName + extension);
+
+                // Build full file path WITH extension
+                string fileNameWithExtension = targetFileName + extension;
+                fullFilePath = Path.Combine(resourceFolder, fileNameWithExtension);
 
                 // Write file
                 File.WriteAllBytes(fullFilePath, binData);
                 result.ExportedFiles.Add(fullFilePath);
 
-                // Update project file if needed
-                if (project.UpdateProjectFile == 1 && !string.IsNullOrEmpty(project.ProjectFile))
+                // Update project file if configured
+                if (!string.IsNullOrEmpty(project.ProjectFile))
                 {
-                    string relativePath = Path.Combine(project.ResourceFolder ?? "Resources",
-                        targetFileName + extension);
-                    AddToProjectFile(project.ProjectFile, relativePath, result);
+                    // Build full project file path
+                    string projectFilePath = project.ProjectFile;
+                    if (!Path.IsPathRooted(projectFilePath))
+                    {
+                        projectFilePath = Path.Combine(project.Path, projectFilePath);
+                    }
+
+                    // Build relative path for the icon file
+                    string relativePath = Path.Combine(project.ResourceFolder ?? "Resources", fileNameWithExtension);
+
+                    // Add to project file (default behavior unless UpdateProjectFile is explicitly 0)
+                    if (project.UpdateProjectFile != 0) // Allow null/1 to mean "yes"
+                    {
+                        AddToProjectFile(projectFilePath, relativePath, result);
+                    }
                 }
             }
 
@@ -202,13 +229,14 @@ namespace IconCommander
                 !string.IsNullOrEmpty(project.ResourceFile))
             {
                 string resxPath = Path.Combine(project.Path, project.ResourceFile);
-                string resourceName = targetFileName.Replace(" ", "_").Replace("-", "_");
+                // Use the resolved target filename for resource name
+                string resourceName = (targetFileName + extension).Replace(" ", "_").Replace("-", "_").Replace(".", "_");
 
                 AddToResourceFile(resxPath, resourceName, binData, extension, result);
             }
 
-            // Record export in database
-            RecordExport(project.Id, iconFileId, targetFileName, result);
+            // Record export in database (with extension)
+            RecordExport(project.Id, iconFileId, targetFileName + extension, result);
 
             result.SuccessCount++;
         }

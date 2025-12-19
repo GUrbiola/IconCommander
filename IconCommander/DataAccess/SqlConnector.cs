@@ -464,6 +464,14 @@ namespace IconCommander.DataAccess
                 cmd.Connection = Connection;
                 cmd.CommandText = sql;
                 cmd.CommandTimeout = TimeOut;
+
+                if (ps != null && ps.Count > 0)
+                {
+                    cmd.Parameters.Clear();
+                    foreach (var p in ps)
+                        cmd.Parameters.AddWithValue(p.Key, p.Value);
+                }
+
                 da = new SqlDataAdapter(cmd);
                 Executing = true;
 
