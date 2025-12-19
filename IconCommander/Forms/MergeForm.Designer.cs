@@ -24,6 +24,9 @@ namespace IconCommander.Forms
             this.lblSmallIconInfo = new System.Windows.Forms.Label();
             this.picSmallIcon = new System.Windows.Forms.PictureBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.rbCustom = new System.Windows.Forms.RadioButton();
             this.rbBottomRight = new System.Windows.Forms.RadioButton();
             this.rbBottom = new System.Windows.Forms.RadioButton();
             this.rbBottomLeft = new System.Windows.Forms.RadioButton();
@@ -33,17 +36,13 @@ namespace IconCommander.Forms
             this.rbTopRight = new System.Windows.Forms.RadioButton();
             this.rbTop = new System.Windows.Forms.RadioButton();
             this.rbTopLeft = new System.Windows.Forms.RadioButton();
-            this.rbCustom = new System.Windows.Forms.RadioButton();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.txtCustomX = new System.Windows.Forms.TextBox();
-            this.txtCustomY = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.lblPreviewInfo = new System.Windows.Forms.Label();
             this.picPreview = new System.Windows.Forms.PictureBox();
             this.btnMerge = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
+            this.customY = new System.Windows.Forms.NumericUpDown();
+            this.customX = new System.Windows.Forms.NumericUpDown();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBigIcon)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -51,10 +50,14 @@ namespace IconCommander.Forms
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.customY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.customX)).BeginInit();
             this.SuspendLayout();
             // 
             // themeManager1
             // 
+            this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
+            this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
             this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ParentForm = this;
@@ -121,9 +124,9 @@ namespace IconCommander.Forms
             this.picSmallIcon.TabStop = false;
             // 
             // groupBox3
-            //
-            this.groupBox3.Controls.Add(this.txtCustomY);
-            this.groupBox3.Controls.Add(this.txtCustomX);
+            // 
+            this.groupBox3.Controls.Add(this.customX);
+            this.groupBox3.Controls.Add(this.customY);
             this.groupBox3.Controls.Add(this.label3);
             this.groupBox3.Controls.Add(this.label2);
             this.groupBox3.Controls.Add(this.rbCustom);
@@ -142,6 +145,35 @@ namespace IconCommander.Forms
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Overlay Position";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(245, 85);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(45, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Top (Y):";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(245, 55);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(47, 13);
+            this.label2.TabIndex = 10;
+            this.label2.Text = "Left (X): ";
+            // 
+            // rbCustom
+            // 
+            this.rbCustom.AutoSize = true;
+            this.rbCustom.Location = new System.Drawing.Point(240, 25);
+            this.rbCustom.Name = "rbCustom";
+            this.rbCustom.Size = new System.Drawing.Size(121, 17);
+            this.rbCustom.TabIndex = 9;
+            this.rbCustom.Text = "Custom (X, Y pixels):";
+            this.rbCustom.UseVisualStyleBackColor = true;
+            this.rbCustom.CheckedChanged += new System.EventHandler(this.PositionRadioButton_CheckedChanged);
             // 
             // rbBottomRight
             // 
@@ -241,54 +273,7 @@ namespace IconCommander.Forms
             this.rbTopLeft.Text = "Top Left";
             this.rbTopLeft.UseVisualStyleBackColor = true;
             this.rbTopLeft.CheckedChanged += new System.EventHandler(this.PositionRadioButton_CheckedChanged);
-            //
-            // rbCustom
-            //
-            this.rbCustom.AutoSize = true;
-            this.rbCustom.Location = new System.Drawing.Point(240, 25);
-            this.rbCustom.Name = "rbCustom";
-            this.rbCustom.Size = new System.Drawing.Size(125, 17);
-            this.rbCustom.TabIndex = 9;
-            this.rbCustom.Text = "Custom (X, Y pixels):";
-            this.rbCustom.UseVisualStyleBackColor = true;
-            this.rbCustom.CheckedChanged += new System.EventHandler(this.PositionRadioButton_CheckedChanged);
-            //
-            // label2
-            //
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(245, 55);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(51, 13);
-            this.label2.TabIndex = 10;
-            this.label2.Text = "Left (X): ";
-            //
-            // label3
-            //
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(245, 85);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(48, 13);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "Top (Y):";
-            //
-            // txtCustomX
-            //
-            this.txtCustomX.Location = new System.Drawing.Point(302, 52);
-            this.txtCustomX.Name = "txtCustomX";
-            this.txtCustomX.Size = new System.Drawing.Size(60, 20);
-            this.txtCustomX.TabIndex = 12;
-            this.txtCustomX.Text = "0";
-            this.txtCustomX.TextChanged += new System.EventHandler(this.CustomPosition_Changed);
-            //
-            // txtCustomY
-            //
-            this.txtCustomY.Location = new System.Drawing.Point(302, 82);
-            this.txtCustomY.Name = "txtCustomY";
-            this.txtCustomY.Size = new System.Drawing.Size(60, 20);
-            this.txtCustomY.TabIndex = 13;
-            this.txtCustomY.Text = "0";
-            this.txtCustomY.TextChanged += new System.EventHandler(this.CustomPosition_Changed);
-            //
+            // 
             // groupBox4
             // 
             this.groupBox4.Controls.Add(this.lblPreviewInfo);
@@ -339,22 +324,47 @@ namespace IconCommander.Forms
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // label1
+            // customY
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(255, 247);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(125, 78);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Instructions:\r\n\r\n1. Select overlay position\r\n2. Preview the result\r\n3. Click Merg" +
-    "e to create\r\n   the merged icon";
+            this.customY.Location = new System.Drawing.Point(296, 83);
+            this.customY.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.customY.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.customY.Name = "customY";
+            this.customY.Size = new System.Drawing.Size(77, 20);
+            this.customY.TabIndex = 14;
+            this.customY.ValueChanged += new System.EventHandler(this.CustomPosition_Changed);
+            // 
+            // customX
+            // 
+            this.customX.Location = new System.Drawing.Point(296, 53);
+            this.customX.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.customX.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.customX.Name = "customX";
+            this.customX.Size = new System.Drawing.Size(77, 20);
+            this.customX.TabIndex = 15;
+            this.customX.ValueChanged += new System.EventHandler(this.CustomPosition_Changed);
             // 
             // MergeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(716, 400);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnMerge);
             this.Controls.Add(this.groupBox4);
@@ -379,8 +389,9 @@ namespace IconCommander.Forms
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.customY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.customX)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -408,11 +419,10 @@ namespace IconCommander.Forms
         private System.Windows.Forms.Label lblBigIconInfo;
         private System.Windows.Forms.Label lblSmallIconInfo;
         private System.Windows.Forms.Label lblPreviewInfo;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.RadioButton rbCustom;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox txtCustomX;
-        private System.Windows.Forms.TextBox txtCustomY;
+        private System.Windows.Forms.NumericUpDown customX;
+        private System.Windows.Forms.NumericUpDown customY;
     }
 }

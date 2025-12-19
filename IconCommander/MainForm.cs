@@ -1559,7 +1559,7 @@ namespace IconCommander
         {
             if (SelectedProject == null)
             {
-                MessageBoxDialog.Show("Please open a project first!", "Export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                MessageBoxDialog.Show("Please open a project first!\n\nGo to Project → Create Project or Project → Open Project", "Export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
                 return;
             }
 
@@ -1567,11 +1567,104 @@ namespace IconCommander
 
             if (selectedIcons.Count == 0)
             {
-                MessageBoxDialog.Show("Please select at least one icon from the buffer to export!", "Export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                MessageBoxDialog.Show("Please select at least one icon from the buffer to export!\n\nClick on icons in the buffer panel to select them.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
                 return;
             }
 
-            MessageBoxDialog.Show($"Export functionality will be implemented in a future update.\n\n{selectedIcons.Count} icon(s) will be exported to:\n{SelectedProject.Path}", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+            try
+            {
+                // Show confirmation
+                string message = $"Export {selectedIcons.Count} icon(s) to project?\n\n" +
+                                $"Project: {SelectedProject.Name}\n" +
+                                $"Type: {SelectedProject.Type}\n" +
+                                $"Path: {SelectedProject.Path}\n\n" +
+                                $"Continue?";
+
+                DialogResult confirmResult = MessageBoxDialog.Show(message, "Export Icons",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, themeManager1.Theme);
+
+                if (confirmResult != DialogResult.Yes)
+                    return;
+
+                // Prepare icon data for export
+                List<IconExportData> iconsToExport = new List<IconExportData>();
+
+                foreach (var iconControl in selectedIcons)
+                {
+                    // Query database for icon file details
+                    string sql = "SELECT FileName, Extension FROM IconFiles WHERE Id = @id";
+                    var parameters = new Dictionary<string, string>
+                    {
+                        { "@id", iconControl.IconFileId.ToString() }
+                    };
+
+                    var response = conx.ExecuteTable(sql, parameters);
+
+                    if (response.IsOK && response.Result.Rows.Count > 0)
+                    {
+                        DataRow row = response.Result.Rows[0];
+                        string fileName = row["FileName"].ToString();
+                        string extension = row["Extension"].ToString();
+
+                        iconsToExport.Add(new IconExportData
+                        {
+                            IconFileId = iconControl.IconFileId,
+                            FileName = fileName,
+                            Extension = extension,
+                            BinData = iconControl.ImageData
+                        });
+                    }
+                }
+
+                // Perform export
+                ExportManager exportManager = new ExportManager(conx);
+                ExportResult result = exportManager.ExportIcons(SelectedProject, iconsToExport);
+
+                // Show results
+                if (result.HasErrors)
+                {
+                    string errors = string.Join("\n", result.Errors);
+                    MessageBoxDialog.Show($"Export failed with errors:\n\n{errors}",
+                        "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                }
+                else if (result.IsSuccess)
+                {
+                    string successMessage = $"Successfully exported {result.SuccessCount} icon(s)!\n\n";
+
+                    if (result.ExportedFiles.Count > 0)
+                        successMessage += $"Files created: {result.ExportedFiles.Count}\n";
+
+                    if (result.ResourcesAdded.Count > 0)
+                        successMessage += $"Resources added: {result.ResourcesAdded.Count}\n";
+
+                    if (result.ProjectFilesUpdated > 0)
+                        successMessage += $"Project files updated: {result.ProjectFilesUpdated}\n";
+
+                    if (result.Warnings.Count > 0)
+                    {
+                        successMessage += $"\nWarnings:\n{string.Join("\n", result.Warnings)}";
+                    }
+
+                    MessageBoxDialog.Show(successMessage, "Export Successful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+
+                    // Optionally deselect icons after export
+                    foreach (var icon in selectedIcons)
+                    {
+                        icon.IsSelected = false;
+                    }
+                }
+                else
+                {
+                    MessageBoxDialog.Show("No icons were exported.", "Export",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, themeManager1.Theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error during export:\n\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+            }
         }
 
         private void PositionFilterControls()

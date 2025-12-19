@@ -119,8 +119,8 @@ namespace IconCommander.Forms
             if (rbCustom.Checked)
             {
                 int x = 0, y = 0;
-                int.TryParse(txtCustomX.Text, out x);
-                int.TryParse(txtCustomY.Text, out y);
+                int.TryParse(customX.Value.ToString(), out x);
+                int.TryParse(customY.Value.ToString(), out y);
                 return $"Custom:{x},{y}";
             }
             return "TopRight";
@@ -128,8 +128,6 @@ namespace IconCommander.Forms
 
         private Point GetSmallIconPosition(string position, int bigWidth, int bigHeight, int smallWidth, int smallHeight)
         {
-            int margin = 5; // Pixel margin from edges
-
             // Check if custom position
             if (position.StartsWith("Custom:"))
             {
@@ -140,36 +138,58 @@ namespace IconCommander.Forms
                     int x = 0, y = 0;
                     if (int.TryParse(parts[0], out x) && int.TryParse(parts[1], out y))
                     {
-                        // Clamp values to prevent drawing outside the big icon
-                        x = Math.Max(0, Math.Min(x, bigWidth - smallWidth));
-                        y = Math.Max(0, Math.Min(y, bigHeight - smallHeight));
+                        // Allow negative values for overlap effect
+                        // Clamp to reasonable bounds
+                        x = Math.Max(-smallWidth + 10, Math.Min(x, bigWidth - 10));
+                        y = Math.Max(-smallHeight + 10, Math.Min(y, bigHeight - 10));
                         return new Point(x, y);
                     }
                 }
             }
 
+            // For corner/edge positions, position flush to the edge (no margin)
+            // This creates the typical "badge" or "overlay" effect
             switch (position)
             {
                 case "TopLeft":
-                    return new Point(margin, margin);
+                    // Flush to top-left corner
+                    return new Point(0, 0);
+
                 case "Top":
-                    return new Point((bigWidth - smallWidth) / 2, margin);
+                    // Centered horizontally, flush to top
+                    return new Point((bigWidth - smallWidth) / 2, 0);
+
                 case "TopRight":
-                    return new Point(bigWidth - smallWidth - margin, margin);
+                    // Flush to top-right corner
+                    return new Point(bigWidth - smallWidth, 0);
+
                 case "Left":
-                    return new Point(margin, (bigHeight - smallHeight) / 2);
+                    // Flush to left edge, centered vertically
+                    return new Point(0, (bigHeight - smallHeight) / 2);
+
                 case "Center":
+                    // Centered both horizontally and vertically
                     return new Point((bigWidth - smallWidth) / 2, (bigHeight - smallHeight) / 2);
+
                 case "Right":
-                    return new Point(bigWidth - smallWidth - margin, (bigHeight - smallHeight) / 2);
+                    // Flush to right edge, centered vertically
+                    return new Point(bigWidth - smallWidth, (bigHeight - smallHeight) / 2);
+
                 case "BottomLeft":
-                    return new Point(margin, bigHeight - smallHeight - margin);
+                    // Flush to bottom-left corner
+                    return new Point(0, bigHeight - smallHeight);
+
                 case "Bottom":
-                    return new Point((bigWidth - smallWidth) / 2, bigHeight - smallHeight - margin);
+                    // Centered horizontally, flush to bottom
+                    return new Point((bigWidth - smallWidth) / 2, bigHeight - smallHeight);
+
                 case "BottomRight":
-                    return new Point(bigWidth - smallWidth - margin, bigHeight - smallHeight - margin);
+                    // Flush to bottom-right corner
+                    return new Point(bigWidth - smallWidth, bigHeight - smallHeight);
+
                 default:
-                    return new Point(bigWidth - smallWidth - margin, margin);
+                    // Default to top-right (common for badges/notifications)
+                    return new Point(bigWidth - smallWidth, 0);
             }
         }
 

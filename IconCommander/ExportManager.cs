@@ -23,6 +23,47 @@ namespace IconCommander
         }
 
         /// <summary>
+        /// Export selected icons to the specified project (simple version for IconDisplayControl)
+        /// </summary>
+        /// <param name="project">Target project</param>
+        /// <param name="icons">List of icon data (IconFileId, FileName, Extension, BinData)</param>
+        /// <returns>Export results with success count and errors</returns>
+        public ExportResult ExportIcons(Project project, List<IconExportData> icons)
+        {
+            ExportResult result = new ExportResult();
+
+            if (project == null)
+            {
+                result.Errors.Add("No project selected. Please select or create a project first.");
+                return result;
+            }
+
+            if (icons == null || icons.Count == 0)
+            {
+                result.Errors.Add("No icons selected for export.");
+                return result;
+            }
+
+            // Validate project configuration
+            if (!ValidateProjectConfiguration(project, result))
+                return result;
+
+            foreach (var icon in icons)
+            {
+                try
+                {
+                    ExportSingleIcon(project, icon.IconFileId, icon.FileName, icon.Extension, icon.BinData, result);
+                }
+                catch (Exception ex)
+                {
+                    result.Errors.Add($"Error exporting icon {icon.FileName}: {ex.Message}");
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Export selected icons from buffer to the specified project
         /// </summary>
         /// <param name="project">Target project</param>
@@ -338,6 +379,17 @@ namespace IconCommander
                 result.Warnings.Add($"Database error recording export: {ex.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Simple icon data for export
+    /// </summary>
+    public class IconExportData
+    {
+        public int IconFileId { get; set; }
+        public string FileName { get; set; }
+        public string Extension { get; set; }
+        public byte[] BinData { get; set; }
     }
 
     /// <summary>
