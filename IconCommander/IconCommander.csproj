@@ -12,6 +12,8 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>VERT_pens.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ClosedXML, Version=0.87.0.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
       <HintPath>..\packages\ClosedXML.0.87.1\lib\net40\ClosedXML.dll</HintPath>
@@ -48,9 +53,16 @@
     <Reference Include="ICSharpCode.TextEditor, Version=3.2.1.6466, Culture=neutral, PublicKeyToken=4d61825e8dd49f1a, processorArchitecture=MSIL">
       <HintPath>..\packages\ICSharpCode.TextEditor.3.2.1.6466\lib\Net20\ICSharpCode.TextEditor.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.119.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetStandard.1.0.119.0\lib\netstandard2.0\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -72,21 +84,97 @@
     <Reference Include="ZidUtilities.CommonCode.ICSharpTextEditor, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ZidUtilities.CommonCode.ICSharpTextEditor.1.0.8\lib\net48\ZidUtilities.CommonCode.ICSharpTextEditor.dll</HintPath>
     </Reference>
-    <Reference Include="ZidUtilities.CommonCode.Win, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZidUtilities.CommonCode.Win.1.0.9\lib\net48\ZidUtilities.CommonCode.Win.dll</HintPath>
+    <Reference Include="ZidUtilities.CommonCode.Win, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZidUtilities.CommonCode.Win.1.0.16\lib\net48\ZidUtilities.CommonCode.Win.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComboboxItem.cs" />
+    <Compile Include="Controls\IconDisplayControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataAccess\Delegates.cs" />
+    <Compile Include="DataAccess\ErrorOnResponse.cs" />
+    <Compile Include="DataAccess\IIconCommanderDb.cs" />
+    <Compile Include="DataAccess\SqlConnector.cs" />
+    <Compile Include="DataAccess\SqliteConnector.cs" />
+    <Compile Include="DataAccess\SqlResponse.cs" />
+    <Compile Include="Forms\CollectionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CollectionsForm.Designer.cs">
+      <DependentUpon>CollectionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\VeinImport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\VeinImport.Designer.cs">
+      <DependentUpon>VeinImport.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\IconexMapper.cs" />
+    <Compile Include="Models\Mapping.cs" />
+    <Compile Include="Models\Project.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Forms\VeinsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\VeinsForm.Designer.cs">
+      <DependentUpon>VeinsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\IconsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\IconsForm.Designer.cs">
+      <DependentUpon>IconsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\IconImport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\IconImport.Designer.cs">
+      <DependentUpon>IconImport.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MergeForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\MergeForm.Designer.cs">
+      <DependentUpon>MergeForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\IconBufferForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\IconBufferForm.Designer.cs">
+      <DependentUpon>IconBufferForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\CollectionsForm.resx">
+      <DependentUpon>CollectionsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\VeinImport.resx">
+      <DependentUpon>VeinImport.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\VeinsForm.resx">
+      <DependentUpon>VeinsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\IconsForm.resx">
+      <DependentUpon>IconsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\IconImport.resx">
+      <DependentUpon>IconImport.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\MergeForm.resx">
+      <DependentUpon>MergeForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\IconBufferForm.resx">
+      <DependentUpon>IconBufferForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -96,6 +184,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -112,6 +201,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\cancel.png" />
+    <None Include="Resources\more_imports.png" />
     <Content Include="Resources\Bookmark.png" />
     <Content Include="Resources\Book_32.png" />
     <Content Include="Resources\close_32x32.png" />
@@ -125,6 +216,15 @@
     <Content Include="Resources\Search.png" />
     <Content Include="Resources\Stop.png" />
     <Content Include="Resources\UnComment.png" />
+    <Content Include="VERT_pens.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
+  </Target>
 </Project>
