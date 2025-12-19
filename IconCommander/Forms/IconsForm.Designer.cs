@@ -37,6 +37,7 @@ namespace IconCommander.Forms
             this.btnDelete = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.btnAddToBuffer = new System.Windows.Forms.ToolStripButton();
+            this.btnAddTags = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.btnRefresh = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
@@ -63,6 +64,7 @@ namespace IconCommander.Forms
             this.btnDelete,
             this.toolStripSeparator1,
             this.btnAddToBuffer,
+            this.btnAddTags,
             this.toolStripSeparator2,
             this.btnRefresh});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
@@ -108,6 +110,14 @@ namespace IconCommander.Forms
             this.btnAddToBuffer.Text = "Add to Buffer";
             this.btnAddToBuffer.Click += new System.EventHandler(this.btnAddToBuffer_Click);
             //
+            // btnAddTags
+            //
+            this.btnAddTags.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnAddTags.Name = "btnAddTags";
+            this.btnAddTags.Size = new System.Drawing.Size(63, 22);
+            this.btnAddTags.Text = "Add Tags";
+            this.btnAddTags.Click += new System.EventHandler(this.btnAddTags_Click);
+            //
             // toolStripSeparator2
             //
             this.toolStripSeparator2.Name = "toolStripSeparator2";
@@ -149,6 +159,7 @@ namespace IconCommander.Forms
         private System.Windows.Forms.ToolStripButton btnDelete;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton btnAddToBuffer;
+        private System.Windows.Forms.ToolStripButton btnAddTags;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton btnRefresh;
     }

@@ -1875,8 +1875,8 @@ namespace IconCommander
                 {
                     int projectIconId = Convert.ToInt32(row.Cells["Id"].Value);
                     int iconFileId = Convert.ToInt32(row.Cells["IconFile"].Value);
-                    string fileName = row.Cells["FileName"].ToString();
-                    string extension = row.Cells["Extension"].ToString();
+                    string fileName = row.Cells["FileName"].Value?.ToString() ?? "";
+                    string extension = row.Cells["Extension"].Value?.ToString() ?? "";
 
                     try
                     {
@@ -2025,8 +2025,8 @@ namespace IconCommander
                 foreach (DataGridViewRow row in selectedRows)
                 {
                     int iconFileId = Convert.ToInt32(row.Cells["IconFile"].Value);
-                    string fileName = row.Cells["FileName"].ToString();
-                    string extension = row.Cells["Extension"].ToString();
+                    string fileName = row.Cells["FileName"].Value?.ToString() ?? "";
+                    string extension = row.Cells["Extension"].Value?.ToString() ?? "";
 
                     // Get binary data from database
                     string sql = "SELECT BinData FROM IconFiles WHERE Id = @id";
@@ -2119,12 +2119,12 @@ namespace IconCommander
             try
             {
                 DataGridViewRow row = dgvExportedIcons.SelectedRows[0];
-                string fileName = row.Cells["FileName"].ToString();
-                string extension = row.Cells["Extension"].ToString();
+                string fileName = row.Cells["FileName"].Value?.ToString() ?? "";
+                string extension = row.Cells["Extension"].Value?.ToString() ?? "";
 
                 // Build file path
-                string resourceFolder = Path.Combine(SelectedProject.Path, SelectedProject.ResourceFolder);
-                string filePath = Path.Combine(resourceFolder, fileName + extension);
+                string resourceFolder = SelectedProject.ResourceFolder;
+                string filePath = Path.Combine(resourceFolder, fileName + "." + extension);
 
                 if (File.Exists(filePath))
                 {

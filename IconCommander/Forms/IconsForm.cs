@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 using ZidUtilities.CommonCode;
 using ZidUtilities.CommonCode.Win;
@@ -417,6 +418,134 @@ DELETE FROM Icons WHERE Id = {id};";
                 MessageBoxDialog.Show($"Error adding to buffer: {ex.Message}", "Icons",
                     MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
             }
+        }
+
+        private void btnAddTags_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int? iconId = GetSelectedId();
+                if (!iconId.HasValue)
+                {
+                    MessageBoxDialog.Show("Please select an icon to add tags.", "Add Tags",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning, theme);
+                    return;
+                }
+
+                // Get icon name for display
+                DataRow selectedRow = GetSelectedRow();
+                string iconName = selectedRow["Name"]?.ToString() ?? "Unknown";
+
+                // Show input dialog for tags
+                string input = ShowInputDialog(
+                    $"Enter tags for icon '{iconName}' (comma or space-separated):",
+                    "Add Tags");
+
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    return; // User cancelled or entered nothing
+                }
+
+                // Parse tags - split by comma, space, semicolon, or pipe
+                char[] separators = new char[] { ',', ' ', ';', '|', '\t' };
+                string[] tags = input.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+                if (tags.Length == 0)
+                {
+                    MessageBoxDialog.Show("No valid tags entered.", "Add Tags",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
+                    return;
+                }
+
+                int addedCount = 0;
+                int duplicateCount = 0;
+
+                foreach (string tag in tags)
+                {
+                    string cleanTag = tag.Trim().ToLower();
+                    if (string.IsNullOrEmpty(cleanTag))
+                        continue;
+
+                    // Check if tag already exists for this icon
+                    string checkSql = $@"SELECT COUNT(*) FROM IconTags
+                                        WHERE Icon = {iconId.Value}
+                                        AND LOWER(Tag) = '{cleanTag.Replace("'", "''")}'";
+                    var checkResponse = Conx.ExecuteScalar(checkSql);
+
+                    int existingCount = checkResponse.IsOK && checkResponse.Result != null
+                        ? Convert.ToInt32(checkResponse.Result)
+                        : 0;
+
+                    if (existingCount == 0)
+                    {
+                        // Add the tag
+                        string insertSql = $@"INSERT INTO IconTags (Icon, Tag)
+                                            VALUES ({iconId.Value}, '{cleanTag.Replace("'", "''")}')";
+                        var insertResponse = Conx.ExecuteNonQuery(insertSql);
+
+                        if (insertResponse.IsOK)
+                            addedCount++;
+                    }
+                    else
+                    {
+                        duplicateCount++;
+                    }
+                }
+
+                // Show results
+                string message = $"{addedCount} tag(s) added successfully!";
+                if (duplicateCount > 0)
+                {
+                    message += $"\n{duplicateCount} tag(s) already existed and were skipped.";
+                }
+
+                MessageBoxDialog.Show(message, "Add Tags",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
+            }
+            catch (Exception ex)
+            {
+                MessageBoxDialog.Show($"Error adding tags: {ex.Message}", "Add Tags",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
+            }
+        }
+
+        /// <summary>
+        /// Shows a simple input dialog for text entry
+        /// </summary>
+        private string ShowInputDialog(string prompt, string title)
+        {
+            Form inputForm = new Form();
+            Label label = new Label();
+            TextBox textBox = new TextBox();
+            Button buttonOk = new Button();
+            Button buttonCancel = new Button();
+
+            inputForm.Text = title;
+            label.Text = prompt;
+            textBox.Text = "";
+
+            buttonOk.Text = "OK";
+            buttonCancel.Text = "Cancel";
+            buttonOk.DialogResult = DialogResult.OK;
+            buttonCancel.DialogResult = DialogResult.Cancel;
+
+            label.SetBounds(9, 20, 372, 13);
+            textBox.SetBounds(12, 50, 372, 20);
+            buttonOk.SetBounds(228, 92, 75, 23);
+            buttonCancel.SetBounds(309, 92, 75, 23);
+
+            label.AutoSize = true;
+            inputForm.ClientSize = new Size(396, 127);
+            inputForm.Controls.AddRange(new Control[] { label, textBox, buttonOk, buttonCancel });
+            inputForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            inputForm.StartPosition = FormStartPosition.CenterParent;
+            inputForm.MinimizeBox = false;
+            inputForm.MaximizeBox = false;
+            inputForm.AcceptButton = buttonOk;
+            inputForm.CancelButton = buttonCancel;
+
+            DialogResult dialogResult = inputForm.ShowDialog();
+            return dialogResult == DialogResult.OK ? textBox.Text : null;
         }
     }
 }
