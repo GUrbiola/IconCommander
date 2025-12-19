@@ -320,10 +320,119 @@ namespace IconCommander
                 }
 
                 result.ResourcesAdded.Add(finalResourceName);
+
+                // Update the corresponding .Designer.cs file
+                UpdateDesignerFile(resxPath, finalResourceName, extension, result);
             }
             catch (Exception ex)
             {
                 result.Warnings.Add($"Could not add to resource file: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Update the .Designer.cs file to add strongly-typed property for the resource
+        /// </summary>
+        private void UpdateDesignerFile(string resxPath, string resourceName, string extension, ExportResult result)
+        {
+            try
+            {
+                // Find the Designer.cs file
+                string designerPath = resxPath.Replace(".resx", ".Designer.cs");
+
+                if (!File.Exists(designerPath))
+                {
+                    result.Warnings.Add($"Designer file not found: {designerPath}. Resource added but not accessible in code.");
+                    return;
+                }
+
+                // Read the designer file
+                string designerContent = File.ReadAllText(designerPath);
+                string originalContent = designerContent;
+
+                // Check if property already exists (check for various access modifiers)
+                if (designerContent.Contains($"static System.Drawing.Bitmap {resourceName} {{") ||
+                    designerContent.Contains($"static System.Drawing.Icon {resourceName} {{") ||
+                    designerContent.Contains($"static System.Drawing.Bitmap {resourceName}{{") ||
+                    designerContent.Contains($"static System.Drawing.Icon {resourceName}{{"))
+                {
+                    // Already exists, no need to add
+                    return;
+                }
+
+                // Determine the return type based on extension
+                string returnType = "System.Drawing.Bitmap";
+                if (extension.ToLower() == ".ico")
+                {
+                    returnType = "System.Drawing.Icon";
+                }
+
+                // Generate the property code with proper indentation
+                string propertyCode = $@"
+        /// <summary>
+        ///   Looks up a localized resource of type {returnType}.
+        /// </summary>
+        internal static {returnType} {resourceName} {{
+            get {{
+                object obj = ResourceManager.GetObject(""{resourceName}"", resourceCulture);
+                return (({returnType})(obj));
+            }}
+        }}";
+
+                // Find the insertion point - look for the last property closing brace before class end
+                // Strategy: Find all occurrences of "        }" (8 spaces + brace) which are property closings
+                int lastPropertyEnd = -1;
+                int searchIndex = 0;
+
+                while (true)
+                {
+                    int nextIndex = designerContent.IndexOf("        }", searchIndex);
+                    if (nextIndex < 0)
+                        break;
+
+                    // Check if this is followed by either another property or the class end
+                    int afterBrace = nextIndex + "        }".Length;
+                    if (afterBrace < designerContent.Length)
+                    {
+                        // This looks like a property end
+                        lastPropertyEnd = afterBrace;
+                    }
+
+                    searchIndex = nextIndex + 1;
+                }
+
+                if (lastPropertyEnd > 0)
+                {
+                    // Insert after the last property
+                    designerContent = designerContent.Insert(lastPropertyEnd, "\n" + propertyCode);
+                }
+                else
+                {
+                    // Fallback: Find the class closing brace (4 spaces + })
+                    // Look for the pattern: 4 spaces, }, newline, } (namespace end)
+                    int namespaceEnd = designerContent.LastIndexOf("\n}");
+                    if (namespaceEnd > 0)
+                    {
+                        // Go backwards to find the class end
+                        int classEnd = designerContent.LastIndexOf("    }", namespaceEnd);
+                        if (classEnd > 0)
+                        {
+                            designerContent = designerContent.Insert(classEnd, propertyCode + "\n");
+                        }
+                    }
+                }
+
+                // Only write if we actually modified the content
+                if (designerContent != originalContent)
+                {
+                    File.WriteAllText(designerPath, designerContent);
+                    // Success message, not warning
+                    result.Warnings.Add($"✓ Added '{resourceName}' property to {Path.GetFileName(designerPath)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Warnings.Add($"Could not update Designer file: {ex.Message}");
             }
         }
 
