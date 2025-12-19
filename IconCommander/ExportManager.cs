@@ -168,6 +168,19 @@ namespace IconCommander
         private void ExportSingleIcon(Project project, int iconFileId, string fileName, string extension,
             byte[] binData, ExportResult result)
         {
+            // Debug: Log export settings for first file only
+            if (result.SuccessCount == 0 && result.ExportedFiles.Count == 0)
+            {
+                result.Warnings.Add($"=== Export Settings ===");
+                result.Warnings.Add($"SaveIconsTo: {project.SaveIconsTo ?? "NULL"}");
+                result.Warnings.Add($"ProjectFile: {project.ProjectFile ?? "NULL"}");
+                result.Warnings.Add($"UpdateProjectFile: {project.UpdateProjectFile}");
+                result.Warnings.Add($"ResourceFolder: {project.ResourceFolder ?? "NULL"}");
+                result.Warnings.Add($"ResourceFile: {project.ResourceFile ?? "NULL"}");
+                result.Warnings.Add($"Project Path: {project.Path}");
+                result.Warnings.Add($"======================");
+            }
+
             // Ensure extension starts with a dot
             if (!string.IsNullOrEmpty(extension) && !extension.StartsWith("."))
             {
@@ -443,22 +456,35 @@ namespace IconCommander
         {
             try
             {
+                // Normalize the relative path to use backslashes (Windows style)
+                relativePath = relativePath.Replace("/", "\\");
+
                 if (!File.Exists(projectFilePath))
                 {
-                    result.Warnings.Add($"Project file not found: {projectFilePath}");
+                    result.Warnings.Add($"⚠ Project file not found: {projectFilePath}");
                     return;
                 }
 
                 XDocument xdoc = XDocument.Load(projectFilePath);
                 XNamespace ns = xdoc.Root.GetDefaultNamespace();
 
-                // Check if file is already in project
+                // Normalize existing paths for comparison
                 var existingContent = xdoc.Descendants(ns + "Content")
-                    .FirstOrDefault(e => e.Attribute("Include")?.Value == relativePath);
+                    .FirstOrDefault(e => {
+                        string existing = e.Attribute("Include")?.Value;
+                        if (existing == null) return false;
+
+                        // Normalize for comparison (case-insensitive, backslashes)
+                        string normalizedExisting = existing.Replace("/", "\\");
+                        string normalizedNew = relativePath.Replace("/", "\\");
+
+                        return string.Equals(normalizedExisting, normalizedNew, StringComparison.OrdinalIgnoreCase);
+                    });
 
                 if (existingContent != null)
                 {
                     // Already exists, no need to add
+                    result.Warnings.Add($"Already in project: {relativePath}");
                     return;
                 }
 
@@ -475,14 +501,15 @@ namespace IconCommander
 
                 // Add Content element
                 itemGroup.Add(new XElement(ns + "Content",
-                    new XAttribute("Include", relativePath.Replace("/", "\\"))));
+                    new XAttribute("Include", relativePath)));
 
                 xdoc.Save(projectFilePath);
                 result.ProjectFilesUpdated++;
+                result.Warnings.Add($"✓ Added to project: {relativePath}");
             }
             catch (Exception ex)
             {
-                result.Warnings.Add($"Could not update project file: {ex.Message}");
+                result.Warnings.Add($"⚠ Could not update project file: {ex.Message}");
             }
         }
 
