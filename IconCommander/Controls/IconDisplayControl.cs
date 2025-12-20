@@ -1,8 +1,11 @@
+using Svg;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace IconCommander.Controls
 {
@@ -47,6 +50,14 @@ namespace IconCommander.Controls
         }
 
         /// <summary>
+        /// Extension of the file to display
+        /// </summary>
+        public string Extension { get; set; }
+
+        public int DisplaySize { get; set; }
+
+
+        /// <summary>
         /// Whether this icon is selected
         /// </summary>
         public bool IsSelected
@@ -72,9 +83,11 @@ namespace IconCommander.Controls
             }
         }
 
-        public IconDisplayControl()
+        public IconDisplayControl(string extension, int size)
         {
             InitializeComponents();
+            this.Extension = extension;
+            this.DisplaySize = size;
         }
 
         private void InitializeComponents()
@@ -162,12 +175,32 @@ namespace IconCommander.Controls
 
             try
             {
-                using (MemoryStream ms = new MemoryStream(_imageData))
+                if (Extension.Equals("svg", StringComparison.OrdinalIgnoreCase))
                 {
+                    XmlDocument xdoc = new XmlDocument();
+                    xdoc.LoadXml(Encoding.UTF8.GetString(_imageData));
+                    SvgDocument svgDoc = SvgDocument.Open(xdoc);
+
+                    // New dimensions (in pixels or user units)
+                    float newWidth = DisplaySize;
+                    float newHeight = DisplaySize;
+
+                    // Update width and height
+                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, newWidth);
+                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, newHeight);
+
                     // Create a copy of the image to avoid locking the stream
-                    Image originalImage = Image.FromStream(ms);
-                    pictureBox.Image = new Bitmap(originalImage);
-                    originalImage.Dispose();
+                    pictureBox.Image = svgDoc.Draw();
+                }
+                else
+                {
+                    using (MemoryStream ms = new MemoryStream(_imageData))
+                    {
+                        // Create a copy of the image to avoid locking the stream
+                        Image originalImage = Image.FromStream(ms);
+                        pictureBox.Image = new Bitmap(originalImage);
+                        originalImage.Dispose();
+                    }
                 }
             }
             catch (Exception ex)
@@ -266,7 +299,7 @@ namespace IconCommander.Controls
             }
 
             // Determine file extension from image data
-            string extension = GetImageExtension(_imageData);
+            string extension = $".{Extension}";
             saveDialog.DefaultExt = extension;
 
             // Set filter based on detected format
@@ -308,7 +341,7 @@ namespace IconCommander.Controls
             try
             {
                 // Determine file extension from image data
-                string extension = GetImageExtension(_imageData);
+                string extension = $".{Extension}";
 
                 // Create file name
                 string baseFileName = !string.IsNullOrEmpty(_fileName)
@@ -347,34 +380,34 @@ namespace IconCommander.Controls
             }
         }
 
-        private string GetImageExtension(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length < 4)
-                return ".png";
+        //private string GetImageExtension(byte[] imageData)
+        //{
+        //    if (imageData == null || imageData.Length < 4)
+        //        return ".png";
 
-            // Check PNG signature
-            if (imageData[0] == 0x89 && imageData[1] == 0x50 && imageData[2] == 0x4E && imageData[3] == 0x47)
-                return ".png";
+        //    // Check PNG signature
+        //    if (imageData[0] == 0x89 && imageData[1] == 0x50 && imageData[2] == 0x4E && imageData[3] == 0x47)
+        //        return ".png";
 
-            // Check JPEG signature
-            if (imageData[0] == 0xFF && imageData[1] == 0xD8)
-                return ".jpg";
+        //    // Check JPEG signature
+        //    if (imageData[0] == 0xFF && imageData[1] == 0xD8)
+        //        return ".jpg";
 
-            // Check GIF signature
-            if (imageData[0] == 0x47 && imageData[1] == 0x49 && imageData[2] == 0x46)
-                return ".gif";
+        //    // Check GIF signature
+        //    if (imageData[0] == 0x47 && imageData[1] == 0x49 && imageData[2] == 0x46)
+        //        return ".gif";
 
-            // Check BMP signature
-            if (imageData[0] == 0x42 && imageData[1] == 0x4D)
-                return ".bmp";
+        //    // Check BMP signature
+        //    if (imageData[0] == 0x42 && imageData[1] == 0x4D)
+        //        return ".bmp";
 
-            // Check ICO signature
-            if (imageData[0] == 0x00 && imageData[1] == 0x00 && imageData[2] == 0x01 && imageData[3] == 0x00)
-                return ".ico";
+        //    // Check ICO signature
+        //    if (imageData[0] == 0x00 && imageData[1] == 0x00 && imageData[2] == 0x01 && imageData[3] == 0x00)
+        //        return ".ico";
 
-            // Default to PNG
-            return ".png";
-        }
+        //    // Default to PNG
+        //    return ".png";
+        //}
 
         protected override void Dispose(bool disposing)
         {

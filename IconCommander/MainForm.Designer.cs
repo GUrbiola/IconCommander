@@ -52,6 +52,7 @@ namespace IconCommander
             this.openDataBaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sqliteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mSSQLServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cleanupUtilityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.themeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.themeManager1 = new ZidUtilities.CommonCode.Win.Controls.ThemeManager(this.components);
@@ -65,10 +66,10 @@ namespace IconCommander
             this.lblVeins = new System.Windows.Forms.Label();
             this.tokenSelectCollections = new ZidUtilities.CommonCode.Win.Controls.TokenSelect();
             this.lblCollections = new System.Windows.Forms.Label();
-            this.chkListTypes = new System.Windows.Forms.CheckedListBox();
-            this.lblTypes = new System.Windows.Forms.Label();
             this.chkListSizes = new System.Windows.Forms.CheckedListBox();
             this.lblSizes = new System.Windows.Forms.Label();
+            this.chkListTypes = new System.Windows.Forms.CheckedListBox();
+            this.lblTypes = new System.Windows.Forms.Label();
             this.mainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.leftPanel = new System.Windows.Forms.Panel();
             this.bufferFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
@@ -192,21 +193,21 @@ namespace IconCommander
             // createProjectToolStripMenuItem
             // 
             this.createProjectToolStripMenuItem.Name = "createProjectToolStripMenuItem";
-            this.createProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.createProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.createProjectToolStripMenuItem.Text = "&Create Project...";
             this.createProjectToolStripMenuItem.Click += new System.EventHandler(this.createProjectToolStripMenuItem_Click);
             // 
             // openProjectToolStripMenuItem
             // 
             this.openProjectToolStripMenuItem.Name = "openProjectToolStripMenuItem";
-            this.openProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.openProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openProjectToolStripMenuItem.Text = "&Open Project...";
             this.openProjectToolStripMenuItem.Click += new System.EventHandler(this.openProjectToolStripMenuItem_Click);
             // 
             // editProjectToolStripMenuItem
             // 
             this.editProjectToolStripMenuItem.Name = "editProjectToolStripMenuItem";
-            this.editProjectToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.editProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.editProjectToolStripMenuItem.Text = "&Edit Project...";
             this.editProjectToolStripMenuItem.Click += new System.EventHandler(this.editProjectToolStripMenuItem_Click);
             // 
@@ -231,7 +232,7 @@ namespace IconCommander
             // manageToolStripMenuItem
             // 
             this.manageToolStripMenuItem.Name = "manageToolStripMenuItem";
-            this.manageToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.manageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.manageToolStripMenuItem.Text = "Manage...";
             this.manageToolStripMenuItem.Click += new System.EventHandler(this.manageCollectionsToolStripMenuItem_Click);
             // 
@@ -247,14 +248,14 @@ namespace IconCommander
             // manageToolStripMenuItem1
             // 
             this.manageToolStripMenuItem1.Name = "manageToolStripMenuItem1";
-            this.manageToolStripMenuItem1.Size = new System.Drawing.Size(144, 22);
+            this.manageToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.manageToolStripMenuItem1.Text = "Manage...";
             this.manageToolStripMenuItem1.Click += new System.EventHandler(this.manageVeinsToolStripMenuItem_Click);
             // 
             // importVeinToolStripMenuItem
             // 
             this.importVeinToolStripMenuItem.Name = "importVeinToolStripMenuItem";
-            this.importVeinToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.importVeinToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.importVeinToolStripMenuItem.Text = "Import Vein...";
             this.importVeinToolStripMenuItem.Click += new System.EventHandler(this.importVeinToolStripMenuItem_Click);
             // 
@@ -282,9 +283,10 @@ namespace IconCommander
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
             // dataBaseToolStripMenuItem
-            // 
+            //
             this.dataBaseToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openDataBaseToolStripMenuItem});
+            this.openDataBaseToolStripMenuItem,
+            this.cleanupUtilityToolStripMenuItem});
             this.dataBaseToolStripMenuItem.Name = "dataBaseToolStripMenuItem";
             this.dataBaseToolStripMenuItem.Size = new System.Drawing.Size(70, 20);
             this.dataBaseToolStripMenuItem.Text = "&Data Base";
@@ -295,7 +297,7 @@ namespace IconCommander
             this.sqliteToolStripMenuItem,
             this.mSSQLServerToolStripMenuItem});
             this.openDataBaseToolStripMenuItem.Name = "openDataBaseToolStripMenuItem";
-            this.openDataBaseToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.openDataBaseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openDataBaseToolStripMenuItem.Text = "&Open Data Base...";
             // 
             // sqliteToolStripMenuItem
@@ -306,12 +308,19 @@ namespace IconCommander
             this.sqliteToolStripMenuItem.Click += new System.EventHandler(this.sqliteToolStripMenuItem_Click);
             // 
             // mSSQLServerToolStripMenuItem
-            // 
+            //
             this.mSSQLServerToolStripMenuItem.Name = "mSSQLServerToolStripMenuItem";
             this.mSSQLServerToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.mSSQLServerToolStripMenuItem.Text = "MS SQL Server..";
             this.mSSQLServerToolStripMenuItem.Click += new System.EventHandler(this.mSSQLServerToolStripMenuItem_Click);
-            // 
+            //
+            // cleanupUtilityToolStripMenuItem
+            //
+            this.cleanupUtilityToolStripMenuItem.Name = "cleanupUtilityToolStripMenuItem";
+            this.cleanupUtilityToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cleanupUtilityToolStripMenuItem.Text = "&Cleanup Utility...";
+            this.cleanupUtilityToolStripMenuItem.Click += new System.EventHandler(this.cleanupUtilityToolStripMenuItem_Click);
+            //
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -323,7 +332,7 @@ namespace IconCommander
             // themeToolStripMenuItem
             // 
             this.themeToolStripMenuItem.Name = "themeToolStripMenuItem";
-            this.themeToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
+            this.themeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.themeToolStripMenuItem.Text = "&Theme";
             // 
             // themeManager1
@@ -348,11 +357,13 @@ namespace IconCommander
             this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
             this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
+            this.themeManager1.ExcludedControlTypes.Add("ICSharpCode.TextEditor.TextEditorControl");
+            this.themeManager1.ExcludedControlTypes.Add("ZidUtilities.CommonCode.ICSharpTextEditor.ExtendedEditor");
             this.themeManager1.ParentForm = this;
             this.themeManager1.Theme = ZidUtilities.CommonCode.Win.ZidThemes.Default;
-            //
+            // 
             // topFilterPanel
-            //
+            // 
             this.topFilterPanel.Controls.Add(this.btnApplyFilter);
             this.topFilterPanel.Controls.Add(this.txtSearch);
             this.topFilterPanel.Controls.Add(this.lblSearch);
@@ -455,30 +466,8 @@ namespace IconCommander
             this.lblCollections.TabIndex = 2;
             this.lblCollections.Text = "Collections:";
             // 
-            // chkListTypes
-            // 
-            this.chkListTypes.CheckOnClick = true;
-            this.chkListTypes.FormattingEnabled = true;
-            this.chkListTypes.Items.AddRange(new object[] {
-            "Image",
-            "Icon",
-            "SVG"});
-            this.chkListTypes.Location = new System.Drawing.Point(11, 28);
-            this.chkListTypes.Name = "chkListTypes";
-            this.chkListTypes.Size = new System.Drawing.Size(239, 64);
-            this.chkListTypes.TabIndex = 1;
-            //
-            // lblTypes
-            //
-            this.lblTypes.AutoSize = true;
-            this.lblTypes.Location = new System.Drawing.Point(11, 11);
-            this.lblTypes.Name = "lblTypes";
-            this.lblTypes.Size = new System.Drawing.Size(39, 13);
-            this.lblTypes.TabIndex = 0;
-            this.lblTypes.Text = "Types:";
-            //
             // chkListSizes
-            //
+            // 
             this.chkListSizes.CheckOnClick = true;
             this.chkListSizes.FormattingEnabled = true;
             this.chkListSizes.Items.AddRange(new object[] {
@@ -490,20 +479,42 @@ namespace IconCommander
             "128x128",
             "256x256",
             "512x512"});
-            this.chkListSizes.Location = new System.Drawing.Point(256, 28);
+            this.chkListSizes.Location = new System.Drawing.Point(130, 28);
             this.chkListSizes.Name = "chkListSizes";
             this.chkListSizes.Size = new System.Drawing.Size(120, 64);
             this.chkListSizes.TabIndex = 12;
-            //
+            // 
             // lblSizes
-            //
+            // 
             this.lblSizes.AutoSize = true;
             this.lblSizes.Location = new System.Drawing.Point(256, 11);
             this.lblSizes.Name = "lblSizes";
-            this.lblSizes.Size = new System.Drawing.Size(86, 13);
+            this.lblSizes.Size = new System.Drawing.Size(81, 13);
             this.lblSizes.TabIndex = 11;
             this.lblSizes.Text = "Available Sizes:";
-            //
+            // 
+            // chkListTypes
+            // 
+            this.chkListTypes.CheckOnClick = true;
+            this.chkListTypes.FormattingEnabled = true;
+            this.chkListTypes.Items.AddRange(new object[] {
+            "Image",
+            "Icon",
+            "SVG"});
+            this.chkListTypes.Location = new System.Drawing.Point(11, 28);
+            this.chkListTypes.Name = "chkListTypes";
+            this.chkListTypes.Size = new System.Drawing.Size(113, 64);
+            this.chkListTypes.TabIndex = 1;
+            // 
+            // lblTypes
+            // 
+            this.lblTypes.AutoSize = true;
+            this.lblTypes.Location = new System.Drawing.Point(11, 11);
+            this.lblTypes.Name = "lblTypes";
+            this.lblTypes.Size = new System.Drawing.Size(39, 13);
+            this.lblTypes.TabIndex = 0;
+            this.lblTypes.Text = "Types:";
+            // 
             // mainSplitContainer
             // 
             this.mainSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -1010,6 +1021,7 @@ namespace IconCommander
         private System.Windows.Forms.ToolStripMenuItem manageToolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem sqliteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mSSQLServerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cleanupUtilityToolStripMenuItem;
         private System.Windows.Forms.Panel topFilterPanel;
         private System.Windows.Forms.Label lblTypes;
         private System.Windows.Forms.CheckedListBox chkListTypes;

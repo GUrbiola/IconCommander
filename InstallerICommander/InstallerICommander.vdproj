@@ -930,7 +930,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:TRUE"
+            "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -992,7 +992,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:TRUE"
+            "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -1083,15 +1083,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Icon Commander"
-        "ProductCode" = "8:{99987BB8-D187-40E3-A718-56DA9870947E}"
-        "PackageCode" = "8:{D02E3C5E-DB43-4076-98C6-A3EADA021F43}"
+        "ProductCode" = "8:{E3F2CDC7-C525-48AC-9979-14AE1E941CEB}"
+        "PackageCode" = "8:{CE69625D-12FF-446D-92A7-513D193CA683}"
         "UpgradeCode" = "8:{10985474-4E40-493D-9B13-7662DF1F1C62}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.2"
         "Manufacturer" = "8:El Cid"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://gurbiola.net/"
@@ -1647,7 +1647,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D6DB0B01E9F242F780A77C217C7632D5"
             {
-            "SourcePath" = "8:..\\IconCommander\\obj\\Debug\\IconCommander.exe"
+            "SourcePath" = "8:..\\IconCommander\\obj\\Release\\IconCommander.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_D6C51722C226465ABB6A488C321632EC"

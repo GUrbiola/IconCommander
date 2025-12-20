@@ -2,6 +2,7 @@ using IconCommander.Controls;
 using IconCommander.DataAccess;
 using IconCommander.Forms;
 using IconCommander.Models;
+using Svg;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using ZidUtilities.CommonCode;
 using ZidUtilities.CommonCode.Win;
 using ZidUtilities.CommonCode.Win.CRUD;
@@ -763,6 +765,25 @@ namespace IconCommander
             }
         }
 
+        private void cleanupUtilityToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (conx == null)
+            {
+                MessageBoxDialog.Show("Please open a database first!", "Cleanup Utility",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning, themeManager1.Theme);
+                return;
+            }
+
+            CleanupUtilityForm cleanupForm = new CleanupUtilityForm(conx, themeManager1.Theme);
+            cleanupForm.ShowDialog();
+
+            // Refresh the current view after cleanup
+            if (allFilteredIcons != null && allFilteredIcons.Rows.Count > 0)
+            {
+                btnApplyFilter_Click(sender, e);
+            }
+        }
+
         // ========================== FILTER AND DISPLAY LOGIC ==========================
 
         private void btnApplyFilter_Click(object sender, EventArgs e)
@@ -875,8 +896,8 @@ namespace IconCommander
                         checkedSizesCount++;
                         string sizeText = chkListSizes.Items[i].ToString(); // e.g., "16x16"
                         int dimension = int.Parse(sizeText.Split('x')[0]); // Get the dimension
-                        //int sizeValue = dimension * dimension; // Calculate area
-                        selectedSizes.Add(dimension);
+                        int sizeValue = dimension * dimension; // Calculate area (Size column stores width * height)
+                        selectedSizes.Add(sizeValue);
                     }
                 }
 
@@ -938,6 +959,9 @@ namespace IconCommander
                 return;
             }
 
+            int loadedCount = 0;
+            int skippedCount = 0;
+
             // Add icon controls
             foreach (DataRow row in iconsTable.Rows)
             {
@@ -958,23 +982,53 @@ namespace IconCommander
                     foreach (DataRow fileRow in iconFileResponse.Result.Rows)
                     {
                         byte[] tempData = fileRow["BinData"] as byte[];
+                        string ext1 = fileRow["Extension"].ToString();
                         if (tempData != null && tempData.Length > 0)
                         {
                             try
                             {
-                                using (MemoryStream ms = new MemoryStream(tempData))
-                                using (Image img = Image.FromStream(ms))
+                                if(ext1.Equals("svg", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    // Find the dimension closest to requested display size
-                                    int maxDim = Math.Max(img.Width, img.Height);
-                                    int sizeDiff = Math.Abs(maxDim - currentIconSize);
-
-                                    if (sizeDiff < closestSizeDiff)
+                                    using (MemoryStream ms = new MemoryStream(tempData))
                                     {
-                                        closestSizeDiff = sizeDiff;
-                                        bestMatch = fileRow;
+                                        XmlDocument xdoc = new XmlDocument();
+                                        xdoc.LoadXml(Encoding.UTF8.GetString(tempData));
+                                        SvgDocument svgDoc = SvgDocument.Open(xdoc);
+                                        
+                                        using (Image img = svgDoc.Draw())
+                                        {
+                                            // Find the dimension closest to requested display size
+                                            int maxDim = Math.Max(img.Width, img.Height);
+                                            int sizeDiff = Math.Abs(maxDim - currentIconSize);
+
+                                            if (sizeDiff < closestSizeDiff)
+                                            {
+                                                closestSizeDiff = sizeDiff;
+                                                bestMatch = fileRow;
+                                            }
+                                        }
+                                    }
+
+                                }
+                                else
+                                {
+                                    using (MemoryStream ms = new MemoryStream(tempData))
+                                    {
+                                        using (Image img = Image.FromStream(ms))
+                                        {
+                                            // Find the dimension closest to requested display size
+                                            int maxDim = Math.Max(img.Width, img.Height);
+                                            int sizeDiff = Math.Abs(maxDim - currentIconSize);
+
+                                            if (sizeDiff < closestSizeDiff)
+                                            {
+                                                closestSizeDiff = sizeDiff;
+                                                bestMatch = fileRow;
+                                            }
+                                        }
                                     }
                                 }
+
                             }
                             catch
                             {
@@ -984,43 +1038,52 @@ namespace IconCommander
                     }
 
                     if (bestMatch == null)
+                    {
+                        skippedCount++;
                         continue;
+                    }
 
                     int iconFileId = Convert.ToInt32(bestMatch["Id"]);
                     byte[] binData = bestMatch["BinData"] as byte[];
+                    string ext = bestMatch["Extension"].ToString();
 
                     if (binData != null && binData.Length > 0)
                     {
                         try
                         {
-                            // Validate image data before creating control
-                            using (MemoryStream ms = new MemoryStream(binData))
-                            {
-                                using (Image testImage = Image.FromStream(ms))
-                                {
-                                    // Image is valid, create control
-                                    IconDisplayControl iconCtrl = new IconDisplayControl();
-                                    iconCtrl.Width = currentIconSize + 10;
-                                    iconCtrl.Height = currentIconSize + 10; // Just padding for border
-                                    iconCtrl.IconFileId = iconFileId;
-                                    iconCtrl.FileName = iconName;
-                                    iconCtrl.ImageData = binData;
-                                    iconCtrl.IconClicked += IconCtrl_IconClicked;
-                                    iconCtrl.IconDoubleClicked += IconCtrl_IconDoubleClicked;
+                            IconDisplayControl iconCtrl = new IconDisplayControl(ext, currentIconSize);
+                            iconCtrl.Width = currentIconSize + 10;
+                            iconCtrl.Height = currentIconSize + 10; // Just padding for border
+                            iconCtrl.IconFileId = iconFileId;
+                            iconCtrl.FileName = iconName;
+                            iconCtrl.ImageData = binData;
+                            iconCtrl.IconClicked += IconCtrl_IconClicked;
+                            iconCtrl.IconDoubleClicked += IconCtrl_IconDoubleClicked;
 
-                                    iconsFlowPanel.Controls.Add(iconCtrl);
-                                }
-                            }
+                            iconsFlowPanel.Controls.Add(iconCtrl);
+                            loadedCount++;
                         }
                         catch
                         {
-                            // Skip invalid image data silently
+                            // Skip invalid image data
+                            skippedCount++;
                         }
                     }
+                }
+                else
+                {
+                    // No icon files found for this icon
+                    skippedCount++;
                 }
             }
 
             iconsFlowPanel.ResumeLayout();
+
+            // Update status if icons were skipped
+            if (skippedCount > 0)
+            {
+                toolStripStatusLabel.Text = $"Loaded {loadedCount} icons ({skippedCount} skipped due to missing/invalid data)";
+            }
         }
 
         private void LoadCurrentPage()
@@ -1113,6 +1176,7 @@ namespace IconCommander
                 foreach (DataRow row in response.Result.Rows)
                 {
                     byte[] binData = row["BinData"] as byte[];
+                    string ext = row["Extension"].ToString();
                     if (binData != null && binData.Length > 0)
                     {
                         try
@@ -1143,7 +1207,7 @@ namespace IconCommander
                             detailPanel.Height = iconControlHeight + labelHeight + 10;
 
                             // Create icon display control
-                            IconDisplayControl iconCtrl = new IconDisplayControl();
+                            IconDisplayControl iconCtrl = new IconDisplayControl(ext, currentIconSize);
                             iconCtrl.Width = detailPanel.Width;
                             iconCtrl.Height = iconControlHeight;
                             iconCtrl.Dock = DockStyle.Top;
@@ -1332,7 +1396,7 @@ namespace IconCommander
             System.Diagnostics.Debug.WriteLine($"Successfully added icon to buffer. BufferZoneId: {insertResult.Result}");
 
             // Clone the icon control for buffer with appropriate size
-            IconDisplayControl bufferIcon = new IconDisplayControl();
+            IconDisplayControl bufferIcon = new IconDisplayControl(iconCtrl.Extension, currentIconSize);
             bufferIcon.Width = width + 10;  // Image width + border padding
             bufferIcon.Height = height + 10; // Image height + border padding
             bufferIcon.IconFileId = iconCtrl.IconFileId;
@@ -1374,6 +1438,7 @@ namespace IconCommander
                         int iconFileId = Convert.ToInt32(row["IconFile"]);
                         byte[] binData = row["BinData"] as byte[];
                         string fileName = row["IconName"].ToString();
+                        string ext = row["Extension"].ToString();
 
                         if (binData != null && binData.Length > 0)
                         {
@@ -1389,9 +1454,9 @@ namespace IconCommander
                                         height = img.Height;
                                     }
                                 }
-
+                                
                                 // Create icon control
-                                IconDisplayControl bufferIcon = new IconDisplayControl();
+                                IconDisplayControl bufferIcon = new IconDisplayControl(ext, currentIconSize);
                                 bufferIcon.Width = width + 10;
                                 bufferIcon.Height = height + 10;
                                 bufferIcon.IconFileId = iconFileId;
