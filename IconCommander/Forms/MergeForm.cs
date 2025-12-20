@@ -1,11 +1,14 @@
 using IconCommander.DataAccess;
+using Svg;
 using System;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using ZidUtilities.CommonCode.Win;
 using ZidUtilities.CommonCode.Win.Forms;
 
@@ -68,16 +71,34 @@ namespace IconCommander.Forms
                     throw new Exception("Small icon data is null or empty");
                 }
 
-                using (MemoryStream ms = new MemoryStream(bigIconData))
+                // Load big icon - check if SVG
+                if (IsSvgData(bigIconData))
                 {
-                    bigIconImage = Image.FromStream(ms);
+                    bigIconImage = LoadSvgAsImage(bigIconData, 256);
                     picBigIcon.Image = new Bitmap(bigIconImage);
                 }
-
-                using (MemoryStream ms = new MemoryStream(smallIconData))
+                else
                 {
-                    smallIconImage = Image.FromStream(ms);
+                    using (MemoryStream ms = new MemoryStream(bigIconData))
+                    {
+                        bigIconImage = Image.FromStream(ms);
+                        picBigIcon.Image = new Bitmap(bigIconImage);
+                    }
+                }
+
+                // Load small icon - check if SVG
+                if (IsSvgData(smallIconData))
+                {
+                    smallIconImage = LoadSvgAsImage(smallIconData, 128);
                     picSmallIcon.Image = new Bitmap(smallIconImage);
+                }
+                else
+                {
+                    using (MemoryStream ms = new MemoryStream(smallIconData))
+                    {
+                        smallIconImage = Image.FromStream(ms);
+                        picSmallIcon.Image = new Bitmap(smallIconImage);
+                    }
                 }
 
                 lblBigIconInfo.Text = $"{bigIconName} ({bigIconImage.Width}x{bigIconImage.Height})";
@@ -92,6 +113,42 @@ namespace IconCommander.Forms
                     MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
                 this.Close();
             }
+        }
+
+        /// <summary>
+        /// Check if byte array contains SVG data
+        /// </summary>
+        private bool IsSvgData(byte[] data)
+        {
+            if (data == null || data.Length < 10)
+                return false;
+
+            try
+            {
+                string start = Encoding.UTF8.GetString(data, 0, Math.Min(500, data.Length));
+                return start.IndexOf("<svg", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Load SVG file and convert to raster image
+        /// </summary>
+        private Image LoadSvgAsImage(byte[] svgData, int size)
+        {
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.LoadXml(Encoding.UTF8.GetString(svgData));
+            SvgDocument svgDoc = SvgDocument.Open(xdoc);
+
+            // Resize SVG to specified size
+            svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, size);
+            svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, size);
+
+            // Render to bitmap
+            return svgDoc.Draw();
         }
 
         private void MergeForm_Load(object sender, EventArgs e)

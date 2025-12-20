@@ -1,11 +1,14 @@
 using IconCommander.DataAccess;
 using IconCommander.Models;
+using Svg;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Resources;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace IconCommander
@@ -323,17 +326,45 @@ namespace IconCommander
                     }
 
                     // Add new icon/image resource - use appropriate type based on extension
-                    using (var ms = new MemoryStream(binData))
+                    if (extension.ToLower() == ".ico")
                     {
-                        if (extension.ToLower() == ".ico")
+                        // Add as Icon type
+                        using (var ms = new MemoryStream(binData))
                         {
-                            // Add as Icon type
                             System.Drawing.Icon icon = new System.Drawing.Icon(ms);
                             writer.AddResource(finalResourceName, icon);
                         }
-                        else
+                    }
+                    else if (extension.ToLower() == ".svg")
+                    {
+                        // Convert SVG to Bitmap for resource file
+                        // .resx files don't support SVG natively, must convert to raster
+                        try
                         {
-                            // Add as Bitmap/Image type for .png, .jpg, .bmp, etc.
+                            XmlDocument xdoc = new XmlDocument();
+                            xdoc.LoadXml(Encoding.UTF8.GetString(binData));
+                            SvgDocument svgDoc = SvgDocument.Open(xdoc);
+
+                            // Render at reasonable size (256x256 is good for resources)
+                            svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, 256);
+                            svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, 256);
+
+                            System.Drawing.Bitmap svgBitmap = svgDoc.Draw();
+                            writer.AddResource(finalResourceName, svgBitmap);
+
+                            result.Warnings.Add($"ℹ SVG '{finalResourceName}' converted to Bitmap (256x256) for .resx compatibility");
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Warnings.Add($"⚠ Failed to convert SVG '{finalResourceName}': {ex.Message}");
+                            throw; // Re-throw to be caught by outer handler
+                        }
+                    }
+                    else
+                    {
+                        // Add as Bitmap/Image type for .png, .jpg, .bmp, etc.
+                        using (var ms = new MemoryStream(binData))
+                        {
                             System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
                             writer.AddResource(finalResourceName, img);
                         }

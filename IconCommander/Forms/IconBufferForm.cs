@@ -1,12 +1,15 @@
 using IconCommander.DataAccess;
 using IconCommander.Models;
+using Svg;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using ZidUtilities.CommonCode.Win;
 using ZidUtilities.CommonCode.Win.Forms;
 
@@ -144,12 +147,32 @@ ORDER BY
                 try
                 {
                     DataRow row = bufferData.Rows[lstBuffer.SelectedIndex];
+                    string extension = row["Extension"].ToString();
                     byte[] imageData = (byte[])row["BinData"];
 
-                    using (MemoryStream ms = new MemoryStream(imageData))
+                    // Check if this is an SVG file
+                    if (extension.Equals(".svg", StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals("svg", StringComparison.OrdinalIgnoreCase))
                     {
-                        Image img = Image.FromStream(ms);
-                        picPreview.Image = new Bitmap(img);
+                        // Load and render SVG
+                        XmlDocument xdoc = new XmlDocument();
+                        xdoc.LoadXml(Encoding.UTF8.GetString(imageData));
+                        SvgDocument svgDoc = SvgDocument.Open(xdoc);
+
+                        // Resize to fit preview box (256x256)
+                        svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, 256);
+                        svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, 256);
+
+                        picPreview.Image = svgDoc.Draw();
+                    }
+                    else
+                    {
+                        // Load raster image
+                        using (MemoryStream ms = new MemoryStream(imageData))
+                        {
+                            Image img = Image.FromStream(ms);
+                            picPreview.Image = new Bitmap(img);
+                        }
                     }
                 }
                 catch (Exception ex)
