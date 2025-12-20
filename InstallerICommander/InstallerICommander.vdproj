@@ -244,12 +244,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EB82803C7A7256C8A38BC4BD45FC4886"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_D6DB0B01E9F242F780A77C217C7632D5"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -355,6 +349,12 @@
         "OwnerKey" = "8:_CFFCFF83F768A87723578BF9564537AF"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_EB82803C7A7256C8A38BC4BD45FC4886"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -373,6 +373,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -389,6 +397,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
@@ -1083,15 +1099,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Icon Commander"
-        "ProductCode" = "8:{E3F2CDC7-C525-48AC-9979-14AE1E941CEB}"
-        "PackageCode" = "8:{CE69625D-12FF-446D-92A7-513D193CA683}"
+        "ProductCode" = "8:{B6977A3C-1492-4355-88EA-0A9E9D3C745E}"
+        "PackageCode" = "8:{B5B3DBDA-ADDE-445B-8586-8D1BB4CADD70}"
         "UpgradeCode" = "8:{10985474-4E40-493D-9B13-7662DF1F1C62}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.2"
+        "ProductVersion" = "8:1.0.3"
         "Manufacturer" = "8:El Cid"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://gurbiola.net/"
@@ -1647,7 +1663,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D6DB0B01E9F242F780A77C217C7632D5"
             {
-            "SourcePath" = "8:..\\IconCommander\\obj\\Release\\IconCommander.exe"
+            "SourcePath" = "8:..\\IconCommander\\obj\\Debug\\IconCommander.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_D6C51722C226465ABB6A488C321632EC"

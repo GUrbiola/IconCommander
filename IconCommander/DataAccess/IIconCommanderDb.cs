@@ -49,6 +49,10 @@ namespace IconCommander.DataAccess
         SqlResponse<int> GetIconId(int Vein, string iconFile);
         List<string> GetTagsFromTempTablesFor(string IconFile);
         List<string> GetTagsForIcon(string IconFile);
+        List<string> GetTagsForIconFileId(int iconFileId);
+        List<string> GetAllTags();
+        int GetIconIdFromIconFileId(int iconFileId);
+        bool RemoveTagFromIcon(int iconId, string tag);
         bool Icons_Insert(int id, string fileName);
         SqlResponse<int> Info(string comment, string className, string methodName, string executor, string processType);
         bool Keywords_Insert(int id, string word);

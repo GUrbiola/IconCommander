@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Forms;
 using ZidUtilities.CommonCode;
 using ZidUtilities.CommonCode.Win;
+using ZidUtilities.CommonCode.Win.Controls;
 using ZidUtilities.CommonCode.Win.Controls.Grid;
 using ZidUtilities.CommonCode.Win.CRUD;
 using ZidUtilities.CommonCode.Win.Forms;
@@ -601,76 +602,43 @@ DELETE FROM Icons WHERE Id = {id};";
                         MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
                     return;
                 }
+                MultiSelectionDialog tagsSelection = new MultiSelectionDialog();
+                tagsSelection.DialogTitle = "Select Tags";
+                tagsSelection.Message = $"Select one or more tags to add ({allTags.Count} available):";
+                tagsSelection.Required = true;
+                tagsSelection.Theme = themeManager1.Theme;
+                tagsSelection.DialogImage = Properties.Resources.Bookmark;
+                tagsSelection.SetDataSource(allTags);
 
-                // Show multi-selection dialog
-                var selectedTags = ShowTagSelectionDialog(allTags);
-
-                if (selectedTags != null && selectedTags.Count > 0)
+                if (tagsSelection.ShowDialog() == DialogResult.OK)
                 {
                     int addedCount = 0;
-                    foreach (string tag in selectedTags)
+                    foreach (string tag in tagsSelection.SelectedTexts)
                     {
-                        string insertSql = $@"INSERT INTO IconTags (Icon, Tag)
-                                             VALUES ({iconId.Value}, '{tag.Replace("'", "''")}')";
-                        var insertResponse = Conx.ExecuteNonQuery(insertSql);
+                        string existsSql = $"SELECT 1 FROM dbo.IconTags Ict WHERE Ict.Icon = {iconId.Value} AND Ict.Tag = '{tag.Replace("'", "''")}'";
+                        string insertSql = $@"INSERT INTO IconTags (Icon, Tag) VALUES ({iconId.Value}, '{tag.Replace("'", "''")}')";
 
-                        if (insertResponse.IsOK)
-                            addedCount++;
+                        var unique = Conx.ExecuteScalar(existsSql);
+                        if(unique != null && unique.IsOK  && Convert.ToInt32(unique.Result) <= 0)
+                        {
+                            var insertResponse = Conx.ExecuteNonQuery(insertSql);
+
+                            if (insertResponse.IsOK)
+                                addedCount++;
+                        }
                     }
 
                     LoadTagsForSelectedIcon();
                     MessageBoxDialog.Show($"{addedCount} tag(s) added successfully!", "Tag Manager",
                         MessageBoxButtons.OK, MessageBoxIcon.Information, theme);
                 }
+
             }
             catch (Exception ex)
             {
                 MessageBoxDialog.Show($"Error adding existing tags: {ex.Message}", "Tag Manager",
                     MessageBoxButtons.OK, MessageBoxIcon.Error, theme);
             }
-        }
-
-        private List<string> ShowTagSelectionDialog(List<string> availableTags)
-        {
-            Form selectionForm = new Form();
-            ListBox listBox = new ListBox();
-            Button btnOk = new Button();
-            Button btnCancel = new Button();
-            Label label = new Label();
-
-            selectionForm.Text = "Select Tags";
-            label.Text = $"Select one or more tags to add ({availableTags.Count} available):";
-
-            listBox.SelectionMode = SelectionMode.MultiExtended;
-            listBox.Items.AddRange(availableTags.ToArray());
-
-            btnOk.Text = "OK";
-            btnCancel.Text = "Cancel";
-            btnOk.DialogResult = DialogResult.OK;
-            btnCancel.DialogResult = DialogResult.Cancel;
-
-            label.SetBounds(12, 12, 460, 20);
-            listBox.SetBounds(12, 40, 460, 300);
-            btnOk.SetBounds(316, 350, 75, 23);
-            btnCancel.SetBounds(397, 350, 75, 23);
-
-            selectionForm.ClientSize = new Size(484, 385);
-            selectionForm.Controls.AddRange(new Control[] { label, listBox, btnOk, btnCancel });
-            selectionForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            selectionForm.StartPosition = FormStartPosition.CenterParent;
-            selectionForm.MinimizeBox = false;
-            selectionForm.MaximizeBox = false;
-            selectionForm.AcceptButton = btnOk;
-            selectionForm.CancelButton = btnCancel;
-
-            DialogResult result = selectionForm.ShowDialog();
-
-            if (result == DialogResult.OK && listBox.SelectedItems.Count > 0)
-            {
-                return listBox.SelectedItems.Cast<string>().ToList();
-            }
-
-            return null;
         }
 
         private void btnCompareTags_Click(object sender, EventArgs e)
@@ -700,10 +668,15 @@ DELETE FROM Icons WHERE Id = {id};";
                     return;
                 }
 
-                // Show icon selection dialog
-                var selectedIcon = ShowIconSelectionDialog(response.Result);
+                SingleSelectionDialog tagsSelection = new SingleSelectionDialog();
+                tagsSelection.DialogTitle = "Select Icon to Compare";
+                tagsSelection.Message = $"Select an icon to compare tags with:";
+                tagsSelection.Required = true;
+                tagsSelection.Theme = themeManager1.Theme;
+                tagsSelection.DialogImage = Properties.Resources.photographic_filters_4_png;
+                tagsSelection.SetDataSource(response.Result, "Name", "Id");
 
-                if (selectedIcon.HasValue)
+                if(tagsSelection.ShowDialog() == DialogResult.OK)
                 {
                     // Get tags for both icons
                     string tags1Sql = $@"SELECT Tag FROM IconTags
@@ -712,12 +685,12 @@ DELETE FROM Icons WHERE Id = {id};";
                     var tags1Response = Conx.ExecuteTable(tags1Sql);
 
                     string tags2Sql = $@"SELECT Tag FROM IconTags
-                                        WHERE Icon = {selectedIcon.Value}
+                                        WHERE Icon = {tagsSelection.SelectedValue}
                                         ORDER BY Tag";
                     var tags2Response = Conx.ExecuteTable(tags2Sql);
 
                     // Get icon2 name
-                    string icon2NameSql = $"SELECT Name FROM Icons WHERE Id = {selectedIcon.Value}";
+                    string icon2NameSql = $"SELECT Name FROM Icons WHERE Id = {tagsSelection.SelectedValue}";
                     var icon2NameResponse = Conx.ExecuteScalar(icon2NameSql);
                     string icon2Name = icon2NameResponse.IsOK && icon2NameResponse.Result != null
                         ? icon2NameResponse.Result.ToString()
@@ -857,6 +830,11 @@ DELETE FROM Icons WHERE Id = {id};";
             comparisonForm.MinimizeBox = false;
             comparisonForm.MaximizeBox = false;
             comparisonForm.AcceptButton = btnClose;
+            
+            ThemeManager themeManager = new ThemeManager();
+            themeManager.ParentForm = comparisonForm;
+            themeManager.Theme = theme;
+            themeManager.ApplyTheme();
 
             comparisonForm.ShowDialog();
         }

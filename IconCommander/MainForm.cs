@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using ZidUtilities.CommonCode;
@@ -37,6 +38,10 @@ namespace IconCommander
         private int pageSize = 100;
         private int totalPages = 1;
         private int totalResults = 0;
+
+        // ProcessingDialog thresholds
+        private const int FILTER_HEAVY_THRESHOLD = 50; // Show dialog if expected results > 50 icons
+        private const int PAGE_HEAVY_THRESHOLD = 20;   // Show dialog if loading > 20 icons per page
 
         public Project SelectedProject { get; set; }
 
@@ -786,7 +791,7 @@ namespace IconCommander
 
         // ========================== FILTER AND DISPLAY LOGIC ==========================
 
-        private void btnApplyFilter_Click(object sender, EventArgs e)
+        private async void btnApplyFilter_Click(object sender, EventArgs e)
         {
             if (conx == null)
             {
@@ -794,12 +799,14 @@ namespace IconCommander
                 return;
             }
 
+            // Disable filter button to prevent multiple clicks
+            btnApplyFilter.Enabled = false;
             Cursor = Cursors.WaitCursor;
             toolStripStatusLabel.Text = "Applying filter...";
 
             try
             {
-                // Build SQL query based on filters
+                // Build SQL query based on filters (on main thread to access UI controls)
                 StringBuilder sql = new StringBuilder();
                 sql.AppendLine("SELECT DISTINCT i.Id, i.Name, i.Vein");
                 sql.AppendLine("FROM Icons i");
@@ -912,29 +919,91 @@ namespace IconCommander
                 sql.AppendLine("ORDER BY i.Name");
                 //sql.AppendLine("LIMIT 500"); // Limit results to prevent UI freeze
 
-                var response = conx.ExecuteTable(sql.ToString());
+                string sqlQuery = sql.ToString(); // Capture SQL before going async
 
-                if (response.IsOK)
+                // Execute query on background thread
+                await Task.Run(() =>
                 {
-                    // Store all filtered results and initialize pagination
-                    allFilteredIcons = response.Result;
-                    totalResults = allFilteredIcons.Rows.Count;
-                    currentPage = 1;
-                    totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
+                    var response = conx.ExecuteTable(sqlQuery);
 
-                    // Update UI labels
-                    lblTotalResults.Text = $"Total: {totalResults} icons";
-                    UpdatePaginationUI();
+                    if (response.IsOK)
+                    {
+                        // Store all filtered results and initialize pagination
+                        allFilteredIcons = response.Result;
+                        totalResults = allFilteredIcons.Rows.Count;
 
-                    // Load first page
-                    LoadCurrentPage();
-                    toolStripStatusLabel.Text = $"Found {totalResults} icons";
-                }
-                else
-                {
-                    MessageBoxDialog.Show($"Error applying filter: {response.Errors[0].Message}", "Filter Error", MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
-                    toolStripStatusLabel.Text = "Filter error";
-                }
+                        // Determine if we should show ProcessingDialog based on result count
+                        bool isHeavyOperation = totalResults > FILTER_HEAVY_THRESHOLD || pageSize > PAGE_HEAVY_THRESHOLD;
+
+                        if (isHeavyOperation)
+                        {
+                            // Show processing dialog for heavy operations
+                            using (var dialog = ProcessingDialogManager.Show(
+                                "Loading Icons",
+                                $"Loading {totalResults} icons...",
+                                themeManager1.Theme))
+                            {
+                                try
+                                {
+                                    // Update UI on main thread
+                                    this.Invoke(new Action(() =>
+                                    {
+                                        currentPage = 1;
+                                        totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
+                                        lblTotalResults.Text = $"Total: {totalResults} icons";
+                                        UpdatePaginationUI();
+                                    }));
+
+                                    // Load first page (this is the heavy part)
+                                    int itemsToLoad = Math.Min(pageSize, totalResults);
+                                    dialog.Update($"Loading {itemsToLoad} icons...", 0);
+
+                                    this.Invoke(new Action(() =>
+                                    {
+                                        LoadCurrentPage();
+                                    }));
+
+                                    dialog.Update("Complete!", 100);
+                                    System.Threading.Thread.Sleep(300); // Brief pause to show completion
+                                }
+                                catch (Exception loadEx)
+                                {
+                                    this.Invoke(new Action(() =>
+                                    {
+                                        MessageBoxDialog.Show($"Error loading icons: {loadEx.Message}", "Load Error",
+                                            MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                                    }));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Light operation - no dialog needed
+                            this.Invoke(new Action(() =>
+                            {
+                                currentPage = 1;
+                                totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
+                                lblTotalResults.Text = $"Total: {totalResults} icons";
+                                UpdatePaginationUI();
+                                LoadCurrentPage();
+                            }));
+                        }
+
+                        this.Invoke(new Action(() =>
+                        {
+                            toolStripStatusLabel.Text = $"Found {totalResults} icons";
+                        }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            MessageBoxDialog.Show($"Error applying filter: {response.Errors[0].Message}", "Filter Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                            toolStripStatusLabel.Text = "Filter error";
+                        }));
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -944,6 +1013,7 @@ namespace IconCommander
             finally
             {
                 Cursor = Cursors.Default;
+                btnApplyFilter.Enabled = true;
             }
         }
 
@@ -1059,6 +1129,7 @@ namespace IconCommander
                             iconCtrl.ImageData = binData;
                             iconCtrl.IconClicked += IconCtrl_IconClicked;
                             iconCtrl.IconDoubleClicked += IconCtrl_IconDoubleClicked;
+                            iconCtrl.TagEditRequested += IconCtrl_TagEditRequested;
 
                             iconsFlowPanel.Controls.Add(iconCtrl);
                             loadedCount++;
@@ -1109,6 +1180,75 @@ namespace IconCommander
             LoadIcons(pageData);
         }
 
+        private async Task LoadCurrentPageAsync()
+        {
+            if (allFilteredIcons == null || allFilteredIcons.Rows.Count == 0)
+            {
+                iconsFlowPanel.Controls.Clear();
+                return;
+            }
+
+            // Calculate start and end indices for current page
+            int startIndex = (currentPage - 1) * pageSize;
+            int endIndex = Math.Min(startIndex + pageSize, totalResults);
+            int itemsToLoad = endIndex - startIndex;
+
+            // Determine if this is a heavy operation
+            bool isHeavyOperation = itemsToLoad > PAGE_HEAVY_THRESHOLD;
+
+            if (isHeavyOperation)
+            {
+                // Show processing dialog for heavy page loads
+                await Task.Run(() =>
+                {
+                    using (var dialog = ProcessingDialogManager.Show(
+                        "Loading Page",
+                        $"Loading {itemsToLoad} icons...",
+                        themeManager1.Theme))
+                    {
+                        try
+                        {
+                            // Create a DataTable with just the current page's rows
+                            DataTable pageData = allFilteredIcons.Clone();
+                            for (int i = startIndex; i < endIndex; i++)
+                            {
+                                pageData.ImportRow(allFilteredIcons.Rows[i]);
+                            }
+
+                            dialog.Update($"Rendering {itemsToLoad} icons...", 50);
+
+                            // Load the icons for the current page (on main thread since it updates UI)
+                            this.Invoke(new Action(() =>
+                            {
+                                LoadIcons(pageData);
+                            }));
+
+                            dialog.Update("Complete!", 100);
+                            System.Threading.Thread.Sleep(300); // Brief pause to show completion
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Invoke(new Action(() =>
+                            {
+                                MessageBoxDialog.Show($"Error loading page: {ex.Message}", "Load Error",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error, themeManager1.Theme);
+                            }));
+                        }
+                    }
+                });
+            }
+            else
+            {
+                // Light operation - load directly without dialog
+                DataTable pageData = allFilteredIcons.Clone();
+                for (int i = startIndex; i < endIndex; i++)
+                {
+                    pageData.ImportRow(allFilteredIcons.Rows[i]);
+                }
+                LoadIcons(pageData);
+            }
+        }
+
         private void UpdatePaginationUI()
         {
             if (totalPages == 0)
@@ -1119,22 +1259,22 @@ namespace IconCommander
             btnNextPage.Enabled = currentPage < totalPages;
         }
 
-        private void btnPrevPage_Click(object sender, EventArgs e)
+        private async void btnPrevPage_Click(object sender, EventArgs e)
         {
             if (currentPage > 1)
             {
                 currentPage--;
-                LoadCurrentPage();
+                await LoadCurrentPageAsync();
                 UpdatePaginationUI();
             }
         }
 
-        private void btnNextPage_Click(object sender, EventArgs e)
+        private async void btnNextPage_Click(object sender, EventArgs e)
         {
             if (currentPage < totalPages)
             {
                 currentPage++;
-                LoadCurrentPage();
+                await LoadCurrentPageAsync();
                 UpdatePaginationUI();
             }
         }
@@ -1156,6 +1296,55 @@ namespace IconCommander
             if (iconCtrl != null)
             {
                 AddToBuffer(iconCtrl);
+            }
+        }
+
+        private void IconCtrl_TagEditRequested(object sender, int iconFileId)
+        {
+            IconDisplayControl iconCtrl = sender as IconDisplayControl;
+            if (iconCtrl != null)
+            {
+                string iconName = iconCtrl.FileName ?? "Unknown Icon";
+
+                Image imgForTagEditor = null;
+                if(iconCtrl.Extension.Equals("svg", StringComparison.OrdinalIgnoreCase))
+                {
+                    XmlDocument xdoc = new XmlDocument();
+                    xdoc.LoadXml(Encoding.UTF8.GetString(iconCtrl.ImageData));
+                    SvgDocument svgDoc = SvgDocument.Open(xdoc);
+
+                    // New dimensions (in pixels or user units)
+                    float newWidth = 64;
+                    float newHeight = 64;
+
+                    // Update width and height
+                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, newWidth);
+                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, newHeight);
+
+                    // Create a copy of the image to avoid locking the stream
+                    imgForTagEditor = svgDoc.Draw();
+                }
+                else
+                {
+                    using (MemoryStream ms = new MemoryStream(iconCtrl.ImageData))
+                    {
+                        // Create a copy of the image to avoid locking the stream
+                        Image originalImage = Image.FromStream(ms);
+                        imgForTagEditor = new Bitmap(originalImage);
+                        originalImage.Dispose();
+                    }
+                }
+
+
+                TagEditForm tagEditForm = new TagEditForm(conx, iconFileId, iconName, imgForTagEditor, themeManager1.Theme);
+                DialogResult result = tagEditForm.ShowDialog();
+
+                // Optionally refresh the display after tags are edited
+                if (result == DialogResult.OK)
+                {
+                    // Tags were updated, you could refresh the current view if needed
+                    // For now, we'll just acknowledge the change silently
+                }
             }
         }
 
@@ -1214,6 +1403,7 @@ namespace IconCommander
                             iconCtrl.IconFileId = Convert.ToInt32(row["FileId"]);
                             iconCtrl.ImageData = binData;
                             iconCtrl.IconClicked += DetailIcon_Clicked;
+                            iconCtrl.TagEditRequested += IconCtrl_TagEditRequested;
 
                             // Create details label - only show size
                             Label lblDetails = new Label();
@@ -1294,7 +1484,7 @@ namespace IconCommander
             }
         }
 
-        private void cmbPageSize_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cmbPageSize_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbPageSize.SelectedIndex < 0)
                 return;
@@ -1308,7 +1498,7 @@ namespace IconCommander
                 totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
                 currentPage = 1; // Reset to first page
                 UpdatePaginationUI();
-                LoadCurrentPage();
+                await LoadCurrentPageAsync();
             }
         }
 
@@ -1404,6 +1594,7 @@ namespace IconCommander
             bufferIcon.ImageData = iconCtrl.ImageData;
             bufferIcon.IconClicked += BufferIcon_Clicked;
             bufferIcon.IconDoubleClicked += BufferIcon_DoubleClicked;
+            bufferIcon.TagEditRequested += IconCtrl_TagEditRequested;
 
             // Store the BufferZone ID
             bufferZoneIds[iconCtrl.IconFileId] = insertResult.Result;
@@ -1464,6 +1655,7 @@ namespace IconCommander
                                 bufferIcon.ImageData = binData;
                                 bufferIcon.IconClicked += BufferIcon_Clicked;
                                 bufferIcon.IconDoubleClicked += BufferIcon_DoubleClicked;
+                                bufferIcon.TagEditRequested += IconCtrl_TagEditRequested;
 
                                 // Store the BufferZone ID
                                 bufferZoneIds[iconFileId] = bufferZoneId;

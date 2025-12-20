@@ -2007,7 +2007,7 @@ WHERE
             string sql = @"
 SELECT DISTINCT
 	It.Tag
-FROM 
+FROM
 	Icons I INNER JOIN IconTags It on I.Id = It.Icon
 WHERE
 	I.Name =  @IconFile
@@ -2043,6 +2043,142 @@ WHERE
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets all tags for a specific IconFile ID (not Icon ID)
+        /// </summary>
+        public List<string> GetTagsForIconFileId(int iconFileId)
+        {
+            string sql = @"
+SELECT DISTINCT
+    It.Tag
+FROM
+    IconFiles Ifil
+    INNER JOIN Icons I ON Ifil.Icon = I.Id
+    INNER JOIN IconTags It ON I.Id = It.Icon
+WHERE
+    Ifil.Id = @IconFileId
+ORDER BY It.Tag
+";
+
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@IconFileId", iconFileId);
+
+                    try
+                    {
+                        conn.Open();
+                        List<string> tags = new List<string>();
+
+                        using (SQLiteDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0))
+                                    tags.Add(reader.GetString(0));
+                            }
+                        }
+
+                        return tags;
+                    }
+                    catch (Exception ex)
+                    {
+                        LastMessage = ex.Message;
+                        LastException = ex;
+                        return new List<string>();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all unique tags from the database
+        /// </summary>
+        public List<string> GetAllTags()
+        {
+            string sql = "SELECT DISTINCT Tag FROM IconTags ORDER BY Tag";
+
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                {
+                    try
+                    {
+                        conn.Open();
+                        List<string> tags = new List<string>();
+
+                        using (SQLiteDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0))
+                                    tags.Add(reader.GetString(0));
+                            }
+                        }
+
+                        return tags;
+                    }
+                    catch (Exception ex)
+                    {
+                        LastMessage = ex.Message;
+                        LastException = ex;
+                        return new List<string>();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the Icon ID from an IconFile ID
+        /// </summary>
+        public int GetIconIdFromIconFileId(int iconFileId)
+        {
+            string sql = "SELECT Icon FROM IconFiles WHERE Id = @IconFileId";
+
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@IconFileId", iconFileId);
+
+                    try
+                    {
+                        conn.Open();
+                        object result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                        {
+                            return Convert.ToInt32(result);
+                        }
+                        return 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        LastMessage = ex.Message;
+                        LastException = ex;
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes a specific tag from an icon
+        /// </summary>
+        public bool RemoveTagFromIcon(int iconId, string tag)
+        {
+            string sql = "DELETE FROM IconTags WHERE Icon = @Icon AND Tag = @Tag";
+
+            var ps = new Dictionary<string, string>
+            {
+                { "@Icon", iconId.ToString() },
+                { "@Tag", tag }
+            };
+
+            var result = ExecuteNonQuery(sql, ps);
+            return result.IsOK;
         }
 
         #endregion

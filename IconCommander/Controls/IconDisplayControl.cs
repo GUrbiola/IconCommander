@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Controls
 {
@@ -25,6 +26,7 @@ namespace IconCommander.Controls
 
         public event EventHandler IconClicked;
         public event EventHandler IconDoubleClicked;
+        public event EventHandler<int> TagEditRequested;
 
         /// <summary>
         /// The IconFile ID from database
@@ -163,6 +165,14 @@ namespace IconCommander.Controls
             ToolStripMenuItem menuSaveToLocation = new ToolStripMenuItem("Save to Location...");
             menuSaveToLocation.Click += MenuSaveToLocation_Click;
             contextMenu.Items.Add(menuSaveToLocation);
+
+            // Separator
+            contextMenu.Items.Add(new ToolStripSeparator());
+
+            // Edit Tags
+            ToolStripMenuItem menuEditTags = new ToolStripMenuItem("Edit Tags...");
+            menuEditTags.Click += MenuEditTags_Click;
+            contextMenu.Items.Add(menuEditTags);
         }
 
         private void LoadImage()
@@ -267,7 +277,7 @@ namespace IconCommander.Controls
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to create directory C:\\Temp:\n{ex.Message}",
+                    MessageBoxDialog.Show($"Failed to create directory C:\\Temp:\n{ex.Message}",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
@@ -280,7 +290,7 @@ namespace IconCommander.Controls
         {
             if (_imageData == null || _imageData.Length == 0)
             {
-                MessageBox.Show("No image data to save.", "Save Error",
+                MessageBoxDialog.Show("No image data to save.", "Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -311,12 +321,12 @@ namespace IconCommander.Controls
                 try
                 {
                     File.WriteAllBytes(saveDialog.FileName, _imageData);
-                    MessageBox.Show($"Icon saved successfully to:\n{saveDialog.FileName}",
+                    MessageBoxDialog.Show($"Icon saved successfully to:\n{saveDialog.FileName}",
                         "Save Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to save icon:\n{ex.Message}",
+                    MessageBoxDialog.Show($"Failed to save icon:\n{ex.Message}",
                         "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -326,14 +336,14 @@ namespace IconCommander.Controls
         {
             if (_imageData == null || _imageData.Length == 0)
             {
-                MessageBox.Show("No image data to save.", "Save Error",
+                MessageBoxDialog.Show("No image data to save.", "Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (!Directory.Exists(folderPath))
             {
-                MessageBox.Show($"Directory does not exist:\n{folderPath}", "Save Error",
+                MessageBoxDialog.Show($"Directory does not exist:\n{folderPath}", "Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -370,12 +380,12 @@ namespace IconCommander.Controls
                 File.WriteAllBytes(filePath, _imageData);
 
                 // Show confirmation
-                MessageBox.Show($"Icon saved successfully to:\n{filePath}",
+                MessageBoxDialog.Show($"Icon saved successfully to:\n{filePath}",
                     "Save Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to save icon:\n{ex.Message}",
+                MessageBoxDialog.Show($"Failed to save icon:\n{ex.Message}",
                     "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -408,6 +418,11 @@ namespace IconCommander.Controls
         //    // Default to PNG
         //    return ".png";
         //}
+
+        private void MenuEditTags_Click(object sender, EventArgs e)
+        {
+            TagEditRequested?.Invoke(this, _iconFileId);
+        }
 
         protected override void Dispose(bool disposing)
         {
