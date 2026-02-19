@@ -1403,6 +1403,7 @@ namespace IconCommander
                             iconCtrl.IconFileId = Convert.ToInt32(row["FileId"]);
                             iconCtrl.ImageData = binData;
                             iconCtrl.IconClicked += DetailIcon_Clicked;
+                            iconCtrl.IconDoubleClicked += DetailIcon_DoubleClicked;
                             iconCtrl.TagEditRequested += IconCtrl_TagEditRequested;
 
                             // Create details label - only show size
@@ -1460,6 +1461,13 @@ namespace IconCommander
 
                 iconCtrl.IsSelected = true;
             }
+        }
+
+        private void DetailIcon_DoubleClicked(object sender, EventArgs e)
+        {
+            IconDisplayControl iconCtrl = sender as IconDisplayControl;
+            if (iconCtrl != null)
+                AddToBuffer(iconCtrl);
         }
 
         private void cmbIconSize_SelectedIndexChanged(object sender, EventArgs e)
