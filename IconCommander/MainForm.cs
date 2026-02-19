@@ -21,6 +21,22 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander
 {
+    /// <summary>
+    /// Root application window that orchestrates icon browsing, filtering, buffer management,
+    /// merging, and project export.
+    /// <para>
+    /// The main workflow:
+    /// <list type="number">
+    ///   <item>Connect to a SQLite or SQL Server database.</item>
+    ///   <item>Use the filter panel (type, size, collection, vein, tag, name search) to load
+    ///       icons into the paginated <c>iconsFlowPanel</c>.</item>
+    ///   <item>Single-click an icon to see all size/format variants in the details panel;
+    ///       double-click (or click "Move to Buffer") to add a specific file to the buffer zone.</item>
+    ///   <item>From the buffer, select two icons to merge via <see cref="MergeForm"/>, or
+    ///       select any number to export to the active <see cref="Project"/>.</item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public partial class MainForm : Form
     {
         private string databaseConnectionString;
@@ -43,13 +59,19 @@ namespace IconCommander
         private const int FILTER_HEAVY_THRESHOLD = 50; // Show dialog if expected results > 50 icons
         private const int PAGE_HEAVY_THRESHOLD = 20;   // Show dialog if loading > 20 icons per page
 
+        /// <summary>Gets or sets the currently active project used for buffer export operations.</summary>
         public Project SelectedProject { get; set; }
 
+        /// <summary>Initialises the form components.</summary>
         public MainForm()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Restores the saved theme, builds the dynamic theme menu, sets default combo selections,
+        /// positions filter controls, and reconnects to the last-used database (if configured).
+        /// </summary>
         private void MainForm_Load(object sender, EventArgs e)
         {
             // Load saved theme preference
@@ -105,6 +127,13 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Creates the appropriate connector (<see cref="SqliteConnector"/> or <see cref="SqlConnector"/>),
+        /// tests the connection, validates the schema, ensures the <c>BufferZone</c> table exists,
+        /// and loads the buffer zone icons.  Saves the connection string to application settings on success.
+        /// </summary>
+        /// <param name="connectionString">Full connection string for the target database.</param>
+        /// <param name="IsSqlite"><c>true</c> to use SQLite; <c>false</c> to use SQL Server.</param>
         private void LoadDbConnection(string connectionString, bool IsSqlite)
         {
             databaseConnectionString = connectionString;
@@ -188,6 +217,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Populates the three <c>TokenSelect</c> filter controls (Collections, Veins, Tags)
+        /// from the database and pre-checks all items in the Type and Size check-list boxes.
+        /// </summary>
         private void LoadFilters()
         {
             if (conx == null)
@@ -243,6 +276,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Handles a theme menu item click: applies the chosen theme, persists it to application
+        /// settings, and updates the check state of all theme menu items.
+        /// </summary>
         private void MenuOption_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
@@ -265,6 +302,11 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Refreshes the status-strip labels: the project label shows the active project name
+        /// and path; the database label shows the database engine and file/server name.
+        /// </summary>
+        /// <param name="dataBase">Database name or file path returned by the connector.</param>
         private void UpdateStatusBar(string dataBase)
         {
             try
@@ -304,6 +346,7 @@ namespace IconCommander
 
         }
 
+        /// <summary>Opens a <c>UIGenerator</c> insert dialog to create a new project record.</summary>
         private void createProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -401,6 +444,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Shows a <c>SingleSelectionDialog</c> listing all projects; on confirmation loads the
+        /// selected project into <see cref="SelectedProject"/> and reloads the buffer zone.
+        /// </summary>
         private void openProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -465,6 +512,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Opens a <c>UIGenerator</c> update dialog for the currently active project and saves changes on confirmation.</summary>
         private void editProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -602,6 +650,11 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Rebuilds <c>panelProjectInfo</c> with a vertical stack of label pairs (field name /
+        /// field value) for all <see cref="SelectedProject"/> properties.
+        /// Shows "No project selected" when no project is active.
+        /// </summary>
         private void UpdateProjectInfo()
         {
             panelProjectInfo.Controls.Clear();
@@ -630,6 +683,15 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Factory method that creates a themed <see cref="Label"/> docked to the top of its parent.
+        /// Long values are tail-truncated to <paramref name="maxLength"/> characters with a leading
+        /// <c>...</c> prefix; a tooltip shows the full value when truncation applies.
+        /// </summary>
+        /// <param name="Text">Display text.</param>
+        /// <param name="Bold">Whether to use a bold font.</param>
+        /// <param name="ToolTip">Full text for the tooltip (pass empty string to skip).</param>
+        /// <param name="MaxLength">Maximum visible characters; 0 disables truncation.</param>
         private System.Windows.Forms.Control CreateLabel(string Text, bool Bold, string ToolTip, int MaxLength)
         {
             Label back = new Label();
@@ -660,6 +722,7 @@ namespace IconCommander
             return back;
         }
 
+        /// <summary>Opens the <c>IconImport</c> dialog for importing icon files.</summary>
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -672,6 +735,7 @@ namespace IconCommander
             dialog.ShowDialog();
         }
 
+        /// <summary>Opens the <see cref="IconsForm"/> dialog for managing icons and their tags.</summary>
         private void manageIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -696,6 +760,7 @@ namespace IconCommander
             //bufferForm.ShowDialog();
         }
 
+        /// <summary>Opens the <see cref="CollectionsForm"/> dialog and reloads filters afterwards.</summary>
         private void manageCollectionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -711,6 +776,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Opens the <see cref="VeinsForm"/> dialog and reloads filters afterwards.</summary>
         private void manageVeinsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -726,6 +792,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Opens the <see cref="VeinImport"/> wizard and reloads filters after import completes.</summary>
         private void importVeinToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (databaseConnectionString.IsEmpty())
@@ -741,6 +808,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Opens a file-picker to select a SQLite <c>.db</c> file and connects to it.</summary>
         private void sqliteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openDialog = new OpenFileDialog())
@@ -761,6 +829,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Opens <c>SqlConnectForm</c> to configure an MS SQL Server connection string.</summary>
         private void mSSQLServerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SqlConnectForm connect = new SqlConnectForm();
@@ -770,6 +839,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Opens <see cref="CleanupUtilityForm"/> passing the current connector, then refreshes the
+        /// current icon page if any icons were previously loaded.
+        /// </summary>
         private void cleanupUtilityToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (conx == null)
@@ -791,6 +864,11 @@ namespace IconCommander
 
         // ========================== FILTER AND DISPLAY LOGIC ==========================
 
+        /// <summary>
+        /// Builds a dynamic SQL query from all active filter controls (type, size, collection,
+        /// vein, tag, text search) and executes it asynchronously.  Initialises pagination,
+        /// shows a <c>ProcessingDialog</c> for heavy result sets, and loads the first page.
+        /// </summary>
         private async void btnApplyFilter_Click(object sender, EventArgs e)
         {
             if (conx == null)
@@ -1017,6 +1095,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Clears <c>iconsFlowPanel</c> and adds an <see cref="IconDisplayControl"/> for each
+        /// row in <paramref name="iconsTable"/>.  For each icon the best-matching file size
+        /// (closest to <see cref="currentIconSize"/>) is selected from all available <c>IconFiles</c>.
+        /// </summary>
+        /// <param name="iconsTable">Filtered icon rows (<c>Id</c>, <c>Name</c>, <c>Vein</c>).</param>
         private void LoadIcons(DataTable iconsTable)
         {
             // Clear existing icons
@@ -1157,6 +1241,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Slices <see cref="allFilteredIcons"/> to the current page window and calls <see cref="LoadIcons"/>.</summary>
         private void LoadCurrentPage()
         {
             if (allFilteredIcons == null || allFilteredIcons.Rows.Count == 0)
@@ -1180,6 +1265,10 @@ namespace IconCommander
             LoadIcons(pageData);
         }
 
+        /// <summary>
+        /// Async version of <see cref="LoadCurrentPage"/> that shows a <c>ProcessingDialog</c>
+        /// when the page size exceeds <see cref="PAGE_HEAVY_THRESHOLD"/>.
+        /// </summary>
         private async Task LoadCurrentPageAsync()
         {
             if (allFilteredIcons == null || allFilteredIcons.Rows.Count == 0)
@@ -1249,6 +1338,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Updates the page-info label and enables/disables the Previous/Next page buttons.</summary>
         private void UpdatePaginationUI()
         {
             if (totalPages == 0)
@@ -1279,6 +1369,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Single-click handler for icons in <c>iconsFlowPanel</c>: stores the clicked control and loads all variants into the details panel.</summary>
         private void IconCtrl_IconClicked(object sender, EventArgs e)
         {
             IconDisplayControl iconCtrl = sender as IconDisplayControl;
@@ -1289,6 +1380,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Double-click handler for icons in <c>iconsFlowPanel</c>: adds the icon directly to the buffer zone.</summary>
         private void IconCtrl_IconDoubleClicked(object sender, EventArgs e)
         {
             // Double click moves to buffer
@@ -1299,6 +1391,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Handles the <c>TagEditRequested</c> event from any <see cref="IconDisplayControl"/>.
+        /// Rasterises the icon (SVG or bitmap) and opens <see cref="TagEditForm"/> with it.
+        /// </summary>
         private void IconCtrl_TagEditRequested(object sender, int iconFileId)
         {
             IconDisplayControl iconCtrl = sender as IconDisplayControl;
@@ -1348,6 +1444,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Queries all size/format variants of the icon that owns <paramref name="iconFileId"/>
+        /// and renders each as a card (icon + dimensions label) in <c>iconDetailsFlowPanel</c>.
+        /// Also displays the icon name and its tags below the panel.
+        /// </summary>
+        /// <param name="iconFileId">ID of any <c>IconFiles</c> row belonging to the target icon.</param>
         private void LoadIconDetails(int iconFileId)
         {
             iconDetailsFlowPanel.SuspendLayout();
@@ -1438,6 +1540,7 @@ namespace IconCommander
             iconDetailsFlowPanel.ResumeLayout();
         }
 
+        /// <summary>Single-click handler for icons in <c>iconDetailsFlowPanel</c>: selects the clicked variant and deselects all others.</summary>
         private void DetailIcon_Clicked(object sender, EventArgs e)
         {
             // Select this specific file for buffer operations
@@ -1463,6 +1566,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Double-click handler for icons in <c>iconDetailsFlowPanel</c>: adds the specific size variant to the buffer zone.</summary>
         private void DetailIcon_DoubleClicked(object sender, EventArgs e)
         {
             IconDisplayControl iconCtrl = sender as IconDisplayControl;
@@ -1470,6 +1574,7 @@ namespace IconCommander
                 AddToBuffer(iconCtrl);
         }
 
+        /// <summary>Updates <see cref="currentIconSize"/> and resizes all controls in <c>iconsFlowPanel</c> to match.</summary>
         private void cmbIconSize_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbIconSize.SelectedIndex < 0)
@@ -1492,6 +1597,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Updates <see cref="pageSize"/>, recalculates pagination, resets to page 1, and reloads asynchronously.</summary>
         private async void cmbPageSize_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbPageSize.SelectedIndex < 0)
@@ -1512,6 +1618,10 @@ namespace IconCommander
 
         // ========================== BUFFER OPERATIONS ==========================
 
+        /// <summary>
+        /// Finds the selected variant in <c>iconDetailsFlowPanel</c> (or falls back to the main
+        /// selected icon) and calls <see cref="AddToBuffer"/>.
+        /// </summary>
         private void btnMoveToBuffer_Click(object sender, EventArgs e)
         {
             // Find selected icon in details panel (now within panels)
@@ -1547,6 +1657,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Inserts <paramref name="iconCtrl"/> into the <c>BufferZone</c> database table and adds a cloned
+        /// <see cref="IconDisplayControl"/> to <c>bufferFlowPanel</c>.  Skips duplicates (checked by
+        /// <see cref="IconDisplayControl.IconFileId"/>).  Stores the returned BufferZone ID for later removal.
+        /// </summary>
+        /// <param name="iconCtrl">The icon control to add.</param>
         private void AddToBuffer(IconDisplayControl iconCtrl)
         {
             // Check if already in buffer
@@ -1613,6 +1729,11 @@ namespace IconCommander
             toolStripStatusLabel.Text = $"Added to buffer. Total: {bufferIcons.Count}";
         }
 
+        /// <summary>
+        /// Loads all <c>BufferZone</c> records for the current project (or project-agnostic if
+        /// none is active) from the database, creates an <see cref="IconDisplayControl"/> for each,
+        /// and populates <c>bufferFlowPanel</c>.
+        /// </summary>
         private void LoadBufferZone()
         {
             if (conx == null)
@@ -1697,6 +1818,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Double-click handler for icons in <c>bufferFlowPanel</c>: removes the icon from the buffer.</summary>
         private void BufferIcon_DoubleClicked(object sender, EventArgs e)
         {
             // Double-click removes from buffer
@@ -1707,6 +1829,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Deletes <paramref name="iconCtrl"/> from the <c>BufferZone</c> table via
+        /// <see cref="IIconCommanderDb.BufferZone_Delete"/>, then removes the control
+        /// from <c>bufferFlowPanel</c> and the in-memory tracking collections.
+        /// Updates the Merge button label and enabled state based on the remaining selection count.
+        /// </summary>
         private void RemoveFromBuffer(IconDisplayControl iconCtrl)
         {
             if (iconCtrl == null)
@@ -1743,6 +1871,11 @@ namespace IconCommander
             toolStripStatusLabel.Text = $"Removed from buffer. Total: {bufferIcons.Count}";
         }
 
+        /// <summary>
+        /// Confirms and removes all currently selected icons from the buffer.
+        /// Delegates individual removal to <see cref="RemoveFromBuffer"/>.
+        /// If no icons are selected, shows an informational tip about double-clicking.
+        /// </summary>
         private void btnRemoveFromBuffer_Click(object sender, EventArgs e)
         {
             // Get all selected icons
@@ -1767,6 +1900,11 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Click handler for icons in <c>bufferFlowPanel</c>: toggles the <c>IsSelected</c>
+        /// state of the clicked <see cref="IconDisplayControl"/> and updates the Merge button
+        /// label and enabled state to reflect the current selection count.
+        /// </summary>
         private void BufferIcon_Clicked(object sender, EventArgs e)
         {
             IconDisplayControl iconCtrl = sender as IconDisplayControl;
@@ -1782,6 +1920,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Opens <see cref="MergeForm"/> with the two selected buffer icons. The larger icon
+        /// (by pixel area from <see cref="GetImageSize"/>) is automatically assigned as the base
+        /// and the smaller as the overlay. On success, reloads the current icon page and the
+        /// buffer zone to reflect the newly created merged icon.
+        /// </summary>
         private void btnMerge_Click(object sender, EventArgs e)
         {
             var selectedIcons = bufferIcons.Where(i => i.IsSelected).ToList();
@@ -1847,6 +1991,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Returns the pixel area (width × height) of an image encoded as a byte array.
+        /// Returns <c>0</c> if the data cannot be decoded as an image.
+        /// </summary>
         private int GetImageSize(byte[] imageData)
         {
             try
@@ -1866,6 +2014,13 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Exports all selected buffer icons to <see cref="SelectedProject"/> via
+        /// <see cref="ExportManager.ExportIcons"/>. Fetches <c>FileName</c> and <c>Extension</c>
+        /// from <c>IconFiles</c> for each selected control, confirms with the user, then shows a
+        /// detailed results message covering file counts, resource additions, project file updates,
+        /// and any warnings. Deselects all icons after a successful export.
+        /// </summary>
         private void btnExportToProject_Click(object sender, EventArgs e)
         {
             if (SelectedProject == null)
@@ -1978,6 +2133,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Manually calculates and applies the layout positions of all filter controls inside
+        /// <c>topFilterPanel</c>. The two checkbox lists use fixed widths; the three
+        /// <c>TokenSelect</c> controls share the remaining space equally. The search field is
+        /// right-aligned. Called on load and on every <see cref="MainForm_Resize"/> event.
+        /// </summary>
         private void PositionFilterControls()
         {
             // Get available width
@@ -2036,6 +2197,7 @@ namespace IconCommander
             btnApplyFilter.Width = searchWidth;
         }
 
+        /// <summary>Recalculates filter-control positions when the main window is resized.</summary>
         private void MainForm_Resize(object sender, EventArgs e)
         {
             // Recalculate filter control positions
@@ -2044,6 +2206,12 @@ namespace IconCommander
 
         // ========================== EXPORTED ICONS MANAGEMENT ==========================
 
+        /// <summary>
+        /// Queries <c>ProjectIcons</c> joined to <c>IconFiles</c>, <c>Icons</c>, <c>Veins</c>,
+        /// and <c>Collections</c> for the active <see cref="SelectedProject"/> and binds the
+        /// result to <c>dgvExportedIcons</c>. Hides internal ID columns and renames headers for
+        /// readability. Does nothing if <see cref="SelectedProject"/> is <c>null</c>.
+        /// </summary>
         private void LoadExportedIcons()
         {
             if (conx == null)
@@ -2138,6 +2306,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Reloads the <c>dgvExportedIcons</c> grid by calling <see cref="LoadExportedIcons"/>.</summary>
         private void btnRefreshExported_Click(object sender, EventArgs e)
         {
             if (SelectedProject == null)
@@ -2150,6 +2319,14 @@ namespace IconCommander
             LoadExportedIcons();
         }
 
+        /// <summary>
+        /// Removes selected rows from <c>dgvExportedIcons</c> and the associated project artefacts:
+        /// deletes the physical file from <see cref="Project.ResourceFolder"/>, removes the entry
+        /// from the <c>.resx</c> file (when <see cref="Project.SaveIconsTo"/> is <c>"File"</c> or
+        /// <c>"Both"</c>), removes the <c>&lt;Content&gt;</c> element from the <c>.csproj</c>
+        /// (when <see cref="Project.UpdateProjectFile"/> is set), and deletes the
+        /// <c>ProjectIcons</c> database record. Shows a confirmation dialog before proceeding.
+        /// </summary>
         private void btnRemoveExported_Click(object sender, EventArgs e)
         {
             if (SelectedProject == null)
@@ -2307,6 +2484,12 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Re-exports previously exported icons to the active project, overwriting any existing
+        /// files. Fetches binary data from <c>IconFiles.BinData</c> for each selected grid row
+        /// and delegates to <see cref="ExportManager.ExportIcons"/>. Reloads
+        /// <c>dgvExportedIcons</c> on success.
+        /// </summary>
         private void btnReExport_Click(object sender, EventArgs e)
         {
             if (SelectedProject == null)
@@ -2418,6 +2601,10 @@ namespace IconCommander
             }
         }
 
+        /// <summary>
+        /// Opens Windows Explorer with the exported file selected, using
+        /// <c>explorer.exe /select,"path"</c>. Shows a warning if the file no longer exists on disk.
+        /// </summary>
         private void btnOpenInExplorer_Click(object sender, EventArgs e)
         {
             if (SelectedProject == null)
@@ -2462,6 +2649,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Loads exported icons when the user switches to the Exported Icons tab (index 1).</summary>
         private void mainTabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             // When switching to Exported Icons tab, load the data
@@ -2471,6 +2659,7 @@ namespace IconCommander
             }
         }
 
+        /// <summary>Fires <see cref="btnApplyFilter_Click"/> when the user presses Enter in the search box.</summary>
         private void txtSearch_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)

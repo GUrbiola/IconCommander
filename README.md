@@ -290,7 +290,7 @@ For **Web Projects**:
 
 The merge feature allows you to combine two icons (e.g., adding a badge overlay).
 
-**Merge Process (Planned Feature):**
+**Merge Process:**
 1. Select a base icon (BigIcon)
 2. Select an overlay icon (SmallIcon)
 3. Choose overlay position:
@@ -801,23 +801,37 @@ msbuild IconCommander.sln /t:Clean /p:Configuration=Debug
 
 ```
 IconCommander/
-├── Program.cs                     # Application entry point
-├── MainForm.cs                    # Main window (370 lines)
-├── ComboboxItem.cs                # Helper class
+├── Program.cs                        # Application entry point (STAThread)
+├── MainForm.cs                       # Main window — search, pagination, buffer, export
+├── ComboboxItem.cs                   # Display/value helper for ComboBox data-binding
+├── ExportManager.cs                  # Icon export engine (file, .resx, .csproj)
+│
+├── Controls/
+│   └── IconDisplayControl.cs         # Custom UserControl for rendering + interacting with icons
 │
 ├── DataAccess/
-│   ├── SqliteConnector.cs         # Database layer (1,546 lines)
-│   └── SqliteConnector.Custom.cs  # Icon queries (256 lines)
+│   ├── IIconCommanderDb.cs           # Database abstraction interface
+│   ├── SqliteConnector.cs            # SQLite implementation
+│   ├── SqlConnector.cs               # SQL Server implementation
+│   ├── SqlResponse.cs                # Generic response wrapper
+│   ├── ErrorOnResponse.cs            # Error detail record
+│   └── Delegates.cs                  # ProcessingQuery delegate
 │
 ├── Forms/
-│   ├── CollectionsForm.cs         # Collections CRUD (266 lines)
-│   ├── VeinsForm.cs               # Veins CRUD (352 lines)
-│   └── VeinImport.cs              # Import wizard (673 lines)
+│   ├── CollectionsForm.cs            # Collections CRUD
+│   ├── VeinsForm.cs                  # Veins CRUD
+│   ├── VeinImport.cs                 # Bulk vein import wizard (BackgroundWorker)
+│   ├── IconImport.cs                 # Individual icon import dialog
+│   ├── IconsForm.cs                  # Icons browse / management
+│   ├── IconBufferForm.cs             # Buffer zone management
+│   ├── TagEditForm.cs                # Tag add/remove dialog (token-select)
+│   ├── MergeForm.cs                  # Icon compositing dialog (9-position overlay)
+│   └── CleanupUtilityForm.cs         # Database cleanup / orphan removal
 │
 ├── Models/
-│   ├── Project.cs
-│   ├── Mapping.cs
-│   └── IconexMapper.cs
+│   ├── Project.cs                    # Project POCO
+│   ├── Mapping.cs                    # Keyword→icon mapping element
+│   └── IconexMapper.cs               # Iconex JSON root object
 │
 ├── Properties/
 │   ├── AssemblyInfo.cs

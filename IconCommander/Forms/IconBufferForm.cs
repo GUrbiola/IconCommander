@@ -15,6 +15,13 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// Standalone dialog for browsing and managing the icon buffer zone.
+    /// Displays buffered icons in a list with a live preview panel, and provides
+    /// operations to remove items, clear the buffer, merge two icons via
+    /// <see cref="MergeForm"/>, or export selected icons to the currently active
+    /// <see cref="Project"/> using <see cref="ExportManager"/>.
+    /// </summary>
     public partial class IconBufferForm : Form
     {
         private string connectionString;
@@ -23,6 +30,13 @@ namespace IconCommander.Forms
         private DataTable bufferData;
         private Project currentProject;
 
+        /// <summary>
+        /// Initialises the form, stores connection details, and creates the appropriate
+        /// database connector based on the <c>IsSqlite</c> application setting.
+        /// </summary>
+        /// <param name="dbConnectionString">Active database connection string.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
+        /// <param name="project">Currently selected project used for export operations; may be <c>null</c>.</param>
         public IconBufferForm(string dbConnectionString, ZidThemes currentTheme, Project project = null)
         {
             InitializeComponent();
@@ -38,6 +52,7 @@ namespace IconCommander.Forms
             Conx.Initialize(connectionString);
         }
 
+        /// <summary>Applies the active theme and performs the initial buffer load.</summary>
         private void IconBufferForm_Load(object sender, EventArgs e)
         {
             themeManager1.Theme = theme;
@@ -46,6 +61,11 @@ namespace IconCommander.Forms
             LoadBuffer();
         }
 
+        /// <summary>
+        /// Queries the <c>BufferZone</c> table with full JOIN context (IconFiles, Icons, Veins, Collections)
+        /// and populates <c>lstBuffer</c>. Each entry shows the filename, approximate dimensions,
+        /// collection, and vein. On empty result, shows an informational message.
+        /// </summary>
         private void LoadBuffer()
         {
             try
@@ -128,6 +148,11 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Enables or disables action buttons based on the current list selection and context:
+        /// Remove requires ≥ 1 selection; Merge requires exactly 2; Export requires ≥ 1 selection
+        /// and a non-null <see cref="currentProject"/>; Clear requires at least one buffered item.
+        /// </summary>
         private void UpdateButtons()
         {
             int selectedCount = lstBuffer.SelectedIndices.Count;
@@ -137,6 +162,10 @@ ORDER BY
             btnClear.Enabled = bufferData.Rows.Count > 0;
         }
 
+        /// <summary>
+        /// Updates button states and renders a preview of the selected icon in <c>picPreview</c>.
+        /// SVG files are rasterised at 256 × 256 px; all other formats are loaded as raster images.
+        /// </summary>
         private void lstBuffer_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateButtons();
@@ -187,6 +216,7 @@ ORDER BY
             }
         }
 
+        /// <summary>Prompts for confirmation then deletes selected buffer entries from <c>IconBuffer</c> and reloads the list.</summary>
         private void btnRemove_Click(object sender, EventArgs e)
         {
             if (lstBuffer.SelectedIndices.Count == 0)
@@ -220,6 +250,7 @@ ORDER BY
             }
         }
 
+        /// <summary>Prompts for confirmation then truncates the entire <c>IconBuffer</c> table and reloads the list.</summary>
         private void btnClear_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBoxDialog.Show(
@@ -236,6 +267,11 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Requires exactly 2 selected icons. Automatically assigns the larger icon (by <c>Size</c>)
+        /// as the base and the smaller as the overlay, then opens <see cref="MergeForm"/>.
+        /// Reloads the buffer if the merge completes successfully.
+        /// </summary>
         private void btnMerge_Click(object sender, EventArgs e)
         {
             if (lstBuffer.SelectedIndices.Count != 2)
@@ -320,16 +356,23 @@ ORDER BY
             }
         }
 
+        /// <summary>Reloads the buffer list from the database.</summary>
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadBuffer();
         }
 
+        /// <summary>Closes this dialog.</summary>
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
+        /// <summary>
+        /// Exports selected buffer icons to <see cref="currentProject"/> via <see cref="ExportManager"/>.
+        /// Shows a confirmation summary before proceeding and a detailed results message afterwards,
+        /// including file counts, resource additions, project file updates, and any warnings.
+        /// </summary>
         private void btnExport_Click(object sender, EventArgs e)
         {
             if (lstBuffer.SelectedIndices.Count == 0)

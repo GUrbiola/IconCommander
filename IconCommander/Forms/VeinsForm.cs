@@ -11,6 +11,13 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// CRUD management form for the <c>Veins</c> table.
+    /// A Vein is a folder-based icon source linked to a parent <c>Collection</c>.
+    /// The form displays veins with their collection names via a LEFT JOIN query,
+    /// and uses <c>UIGenerator</c> (with a Collection foreign-key dropdown and folder picker)
+    /// to produce Insert and Update dialogs at runtime.
+    /// </summary>
     public partial class VeinsForm : Form
     {
         private string connectionString;
@@ -18,7 +25,11 @@ namespace IconCommander.Forms
         private int selectedRowIndex = -1;
         private IIconCommanderDb Conx;
 
-
+        /// <summary>
+        /// Initialises the form, establishes the database connection, and registers ZidGrid plugins.
+        /// </summary>
+        /// <param name="dbConnectionString">Active database connection string.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
         public VeinsForm(string dbConnectionString, ZidThemes currentTheme)
         {
             InitializeComponent();
@@ -42,6 +53,7 @@ namespace IconCommander.Forms
                 zidGrid1.CustomMenuItems.Add(option);
         }
 
+        /// <summary>Applies the active theme and performs the initial data load.</summary>
         private void VeinsForm_Load(object sender, EventArgs e)
         {
             // Apply theme
@@ -52,6 +64,10 @@ namespace IconCommander.Forms
             LoadVeins();
         }
 
+        /// <summary>
+        /// Executes a LEFT JOIN query against <c>Veins</c> and <c>Collections</c> and binds the result to <c>zidGrid1</c>.
+        /// The result includes the parent collection name alongside each vein's properties.
+        /// </summary>
         private void LoadVeins()
         {
             try
@@ -92,6 +108,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Returns the <c>Id</c> of the currently selected grid row, or <c>null</c> when nothing is selected.</summary>
         private int? GetSelectedId()
         {
             if (zidGrid1.SelectedRow != null)
@@ -100,6 +117,7 @@ namespace IconCommander.Forms
             return null;
         }
 
+        /// <summary>Returns the underlying <see cref="DataRow"/> for the currently selected grid row, or <c>null</c> when nothing is selected.</summary>
         private DataRow GetSelectedRow()
         {
             if (zidGrid1.SelectedRow != null)
@@ -113,6 +131,10 @@ namespace IconCommander.Forms
             return null;
         }
 
+        /// <summary>
+        /// Opens a <c>UIGenerator</c> insert dialog configured with a Collection foreign-key dropdown and folder picker.
+        /// On confirmation, executes the generated INSERT SQL and refreshes the grid.
+        /// </summary>
         private void btnInsert_Click(object sender, EventArgs e)
         {
             try
@@ -208,6 +230,10 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Opens a <c>UIGenerator</c> update dialog pre-populated with the selected vein's data.
+        /// On confirmation, executes the generated UPDATE SQL and refreshes the grid.
+        /// </summary>
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             try
@@ -308,6 +334,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Prompts for confirmation then deletes the selected vein from the database and refreshes the grid.</summary>
         private void btnDelete_Click(object sender, EventArgs e)
         {
             try
@@ -356,6 +383,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Reloads the veins grid from the database.</summary>
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadVeins();

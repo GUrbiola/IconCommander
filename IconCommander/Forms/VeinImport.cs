@@ -22,6 +22,19 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// Complex wizard for bulk importing icons from a vein's folder path into the database.
+    /// The operator selects a vein, optionally supplies a JSON tags file (Iconex format),
+    /// and launches the import via a <see cref="BackgroundWorker"/>.  The worker:
+    /// <list type="bullet">
+    ///   <item>Optionally parses the JSON file and populates the keyword buffer tables.</item>
+    ///   <item>Scans the vein directory recursively for supported image files.</item>
+    ///   <item>Registers each unique icon, saves the binary file, and associates tags.</item>
+    ///   <item>Commits work in checkpoints every 1000 files to prevent data loss.</item>
+    ///   <item>Drops and recreates search indexes around the bulk insert for performance.</item>
+    ///   <item>Supports cancellation with automatic rollback and cleanup.</item>
+    /// </list>
+    /// </summary>
     public partial class VeinImport : Form
     {
         private string connectionString;
@@ -33,8 +46,15 @@ namespace IconCommander.Forms
         private IIconCommanderDb Conx;
         private DataTable Veins;
 
+        /// <summary>Gets or sets the <see cref="DataRow"/> from <c>Veins</c> that is currently selected for import.</summary>
         public DataRow SelectedVein { get; set; } = null;
 
+        /// <summary>
+        /// Initialises the form, creates the database connector, loads all veins (with file/icon/tag
+        /// counts via correlated sub-queries), and sets up the <see cref="breadCrumbVeinPath"/> root node.
+        /// </summary>
+        /// <param name="dbConnectionString">Active database connection string.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
         public VeinImport(string dbConnectionString, ZidThemes currentTheme)
         {
             InitializeComponent();
@@ -79,6 +99,7 @@ ORDER BY
 
         }
 
+        /// <summary>Populates <c>cmbVeins</c> from the <see cref="Veins"/> data table using <see cref="ComboboxItem"/> wrappers.</summary>
         private void LoadVeins()
         {
             cmbVeins.Items.Clear();
@@ -91,6 +112,7 @@ ORDER BY
             }
         }
 
+        /// <summary>Applies the active theme and centres the form on screen.</summary>
         private void VeinImport_Load(object sender, EventArgs e)
         {
             themeManager1.Theme = theme;
@@ -99,11 +121,18 @@ ORDER BY
             this.CenterToScreen();
         }
 
+        /// <summary>Delegates to <see cref="LoadVeinData"/> when the vein selection changes.</summary>
         private void cmbVeins_SelectedIndexChanged(object sender, EventArgs e)
         {
             LoadVeinData(cmbVeins.SelectedItem as ComboboxItem);
         }
 
+        /// <summary>
+        /// Populates all form fields from the selected <see cref="ComboboxItem"/>: collection name,
+        /// vein path, file/icon/tag count statistics, checkbox flags, breadcrumb, and tree view.
+        /// Also sets <see cref="SelectedVein"/> to the backing <see cref="DataRow"/>.
+        /// </summary>
+        /// <param name="item">The selected <see cref="ComboboxItem"/> wrapping the vein's <see cref="DataRow"/>.</param>
         private void LoadVeinData(ComboboxItem item)
         {
             if (item == null)
@@ -148,6 +177,11 @@ ORDER BY
 
         }
 
+        /// <summary>
+        /// Traverses <paramref name="path"/> from leaf to root, then navigates
+        /// <c>breadCrumbVeinPath</c> forward from the root node to reconstruct the full path.
+        /// </summary>
+        /// <param name="path">Absolute folder path to represent in the breadcrumb control.</param>
         private void LoadBreadCrumb(string path)
         {
             Stack<string> folders = new Stack<string>();
@@ -195,6 +229,11 @@ ORDER BY
 
         }
 
+        /// <summary>
+        /// Clears and rebuilds <c>treeVeinRoot</c> with a single root node representing
+        /// <paramref name="path"/> and its recursive child nodes from <see cref="GetNodesFor"/>.
+        /// </summary>
+        /// <param name="path">Root folder path for the tree view.</param>
         private void LoadTreeView(string path)
         {
             TreeNode root = new TreeNode();
@@ -213,6 +252,13 @@ ORDER BY
             treeVeinRoot.Nodes.Add(root);
         }
 
+        /// <summary>
+        /// Recursively scans <paramref name="path"/> and returns a sorted list of
+        /// <see cref="TreeNode"/> objects — directories first, then files.
+        /// File nodes are assigned an image index based on their extension (.txt, .png, .jpg, .bmp, .ico).
+        /// </summary>
+        /// <param name="path">Directory to scan.</param>
+        /// <returns>Sorted list of tree nodes for directories and files under <paramref name="path"/>.</returns>
         private List<TreeNode> GetNodesFor(string path)
         {
             List<TreeNode> back = new List<TreeNode>();
@@ -273,6 +319,7 @@ ORDER BY
             return back;
         }
 
+        /// <summary>Opens an <see cref="OpenFileDialog"/> allowing the operator to select the JSON tags file.</summary>
         private void btnTagsFile_Click(object sender, EventArgs e)
         {
             OpenFileDialog openDialog = new OpenFileDialog();
@@ -287,6 +334,10 @@ ORDER BY
 
         }
 
+        /// <summary>
+        /// Validates that a vein is selected, prompts to delete existing icons if any are present,
+        /// then starts the <see cref="BackgroundWorker"/> for the import operation.
+        /// </summary>
         private void btnImport_Click(object sender, EventArgs e)
         {
             ComboboxItem item = cmbVeins.SelectedItem as ComboboxItem;
@@ -325,6 +376,11 @@ ORDER BY
             bgWorker.RunWorkerAsync();
         }
 
+        /// <summary>
+        /// Empties the three temporary import tables (<c>KeywordBuffer</c>, <c>IconBuffer</c>,
+        /// <c>IconKeywordBuffer</c>).  Uses <c>DELETE</c> for SQLite and <c>TRUNCATE</c> for
+        /// SQL Server.
+        /// </summary>
         public void CleanTempTables()
         {
             if (Properties.Settings.Default.IsSqlite)
@@ -341,6 +397,7 @@ ORDER BY
             }
         }
 
+        /// <summary>Appends <paramref name="logText"/> to <c>logs</c> and scrolls to the latest entry.</summary>
         private void WriteLog(string logText)
         {
             logs.Items.Add(logText);
@@ -348,6 +405,22 @@ ORDER BY
             logs.TopIndex = logs.Items.Count - 1;
         }
 
+        /// <summary>
+        /// Main import logic executed on the background thread.  The algorithm:
+        /// <list type="number">
+        ///   <item>Optionally parses a JSON Iconex tags file into the keyword buffer tables.</item>
+        ///   <item>Drops <c>IconTags</c> and <c>IconFiles</c> indexes for faster inserts.</item>
+        ///   <item>Opens a bulk SQLite transaction with PRAGMA optimisations.</item>
+        ///   <item>Iterates every file in the vein path (skipping unsupported extensions).</item>
+        ///   <item>Registers each unique icon name, saves the binary file and hash.</item>
+        ///   <item>Accumulates tags (from filename or temp tables) in memory for bulk insert.</item>
+        ///   <item>Commits a checkpoint transaction every 1000 files to prevent data loss.</item>
+        ///   <item>On completion or error, calls <see cref="RestoreDatabaseState"/> to
+        ///       recreate indexes and reset PRAGMA settings.</item>
+        /// </list>
+        /// Supports cancellation via <see cref="BackgroundWorker.CancellationPending"/>;
+        /// a cancelled import rolls back the current transaction and then falls through to cleanup.
+        /// </summary>
         private void bgWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             int IsIcon, IsImage, IsSvg, Collection, Vein;
@@ -973,11 +1046,17 @@ ORDER BY
             }
         }
 
+        /// <summary>Routes progress messages from the background worker to <see cref="WriteLog"/>.</summary>
         private void bgWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             WriteLog(e.UserState.ToString());
         }
 
+        /// <summary>
+        /// Re-enables UI controls after the background worker finishes.  If the import was
+        /// cancelled, deletes all icons from the vein to leave the database in a clean state.
+        /// On success, shows a completion message and reloads the vein statistics.
+        /// </summary>
         private void bgWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             cmbVeins.Enabled = true;
@@ -1030,11 +1109,17 @@ ORDER BY
             }
         }
 
+        /// <summary>Requests cancellation of the running import operation.</summary>
         private void btnCancel_Click(object sender, EventArgs e)
         {
             bgWorker.CancelAsync();
         }
 
+        /// <summary>
+        /// Intercepts the form close event while a background import is running.
+        /// Asks the operator to confirm cancellation; if confirmed, requests cancellation
+        /// and suppresses the close until the worker finishes.
+        /// </summary>
         private void VeinImport_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (bgWorker.IsBusy)

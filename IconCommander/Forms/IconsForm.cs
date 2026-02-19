@@ -15,6 +15,14 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// CRUD management form for the <c>Icons</c> table, featuring an inline tag management
+    /// panel.  The grid shows each icon together with its parent vein and collection via
+    /// LEFT JOIN queries.  Selecting a row loads that icon's tags into a sidebar list where
+    /// the operator can add individual tags, add from the global tag dictionary, remove tags,
+    /// or compare tags between two icons using a Jaccard-similarity side-by-side dialog.
+    /// Icons can also be pushed to the <c>IconBuffer</c> for later export or merging.
+    /// </summary>
     public partial class IconsForm : Form
     {
         private string connectionString;
@@ -22,6 +30,13 @@ namespace IconCommander.Forms
         private int selectedRowIndex = -1;
         private IIconCommanderDb Conx;
 
+        /// <summary>
+        /// Initialises the form, creates the appropriate database connector, and registers
+        /// the standard <c>ZidGrid</c> plugins (data export, column visibility, copy-special,
+        /// freeze columns, quick filter).
+        /// </summary>
+        /// <param name="dbConnectionString">Active database connection string.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
         public IconsForm(string dbConnectionString, ZidThemes currentTheme)
         {
             InitializeComponent();
@@ -45,6 +60,7 @@ namespace IconCommander.Forms
                 zidGrid1.CustomMenuItems.Add(option);
         }
 
+        /// <summary>Applies the active theme, wires grid selection events, and performs the initial data load.</summary>
         private void IconsForm_Load(object sender, EventArgs e)
         {
             // Apply theme
@@ -59,6 +75,10 @@ namespace IconCommander.Forms
             LoadIcons();
         }
 
+        /// <summary>
+        /// Executes a LEFT JOIN query against <c>Icons</c>, <c>Veins</c>, and <c>Collections</c>
+        /// ordered by icon name, and binds the result to <c>zidGrid1</c>.
+        /// </summary>
         private void LoadIcons()
         {
             try
@@ -104,6 +124,7 @@ ORDER BY
             }
         }
 
+        /// <summary>Returns the <c>Id</c> of the currently selected grid row, or <c>null</c> when nothing is selected.</summary>
         private int? GetSelectedId()
         {
             if (zidGrid1.SelectedRow != null)
@@ -112,6 +133,7 @@ ORDER BY
             return null;
         }
 
+        /// <summary>Returns the underlying <see cref="DataRow"/> for the currently selected grid row, or <c>null</c> when nothing is selected.</summary>
         private DataRow GetSelectedRow()
         {
             if (zidGrid1.SelectedRow != null)
@@ -125,6 +147,10 @@ ORDER BY
             return null;
         }
 
+        /// <summary>
+        /// Opens a <c>UIGenerator</c> insert dialog with a Vein foreign-key dropdown.
+        /// On confirmation, executes the generated INSERT SQL and refreshes the grid.
+        /// </summary>
         private void btnInsert_Click(object sender, EventArgs e)
         {
             try
@@ -213,6 +239,10 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Opens a <c>UIGenerator</c> update dialog pre-populated with the selected icon's data.
+        /// On confirmation, executes the generated UPDATE SQL and refreshes the grid.
+        /// </summary>
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             try
@@ -299,6 +329,11 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Prompts for confirmation then performs a cascading delete of the selected icon:
+        /// MergeRecipes, BufferZone, IconTags, IconFiles, and finally the Icons row itself.
+        /// Refreshes the grid on success.
+        /// </summary>
         private void btnDelete_Click(object sender, EventArgs e)
         {
             try
@@ -356,16 +391,19 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>Reloads the icons grid from the database.</summary>
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadIcons();
         }
 
+        /// <summary>Loads tags for the currently selected icon when the grid is clicked.</summary>
         private void zidGrid1_Click(object sender, EventArgs e)
         {
             LoadTagsForSelectedIcon();
         }
 
+        /// <summary>Loads tags for the currently selected icon when the user navigates the grid with arrow, Page Up/Down, Home, or End keys.</summary>
         private void zidGrid1_KeyUp(object sender, KeyEventArgs e)
         {
             // Load tags when navigating with keyboard
@@ -377,6 +415,10 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Queries <c>IconTags</c> for the currently selected icon and populates <c>lstTags</c>.
+        /// Also updates <c>lblSelectedIcon</c> with the icon's name.
+        /// </summary>
         private void LoadTagsForSelectedIcon()
         {
             try
@@ -418,11 +460,13 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>Invokes <see cref="AddNewTag"/> when the Add button is clicked.</summary>
         private void btnAddNewTag_Click(object sender, EventArgs e)
         {
             AddNewTag();
         }
 
+        /// <summary>Invokes <see cref="AddNewTag"/> when Enter is pressed in the tag text box.</summary>
         private void txtNewTag_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
@@ -432,6 +476,10 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Reads <c>txtNewTag</c>, normalises the value to lower-case, checks for a duplicate
+        /// in <c>IconTags</c>, inserts the new tag, clears the input, and reloads the tag list.
+        /// </summary>
         private void AddNewTag()
         {
             try
@@ -494,6 +542,10 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Prompts for confirmation then deletes all selected tags from <c>IconTags</c>
+        /// for the currently selected icon.
+        /// </summary>
         private void btnRemoveTag_Click(object sender, EventArgs e)
         {
             try
@@ -548,6 +600,11 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Opens a <c>MultiSelectionDialog</c> populated with all distinct tags from the database
+        /// that are not already assigned to the selected icon.  Selected tags are inserted into
+        /// <c>IconTags</c> with a duplicate check before each insert.
+        /// </summary>
         private void btnAddExistingTag_Click(object sender, EventArgs e)
         {
             try
@@ -641,6 +698,11 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Lets the operator select a second icon via <c>SingleSelectionDialog</c> then computes
+        /// three sets — tags exclusive to each icon, tags common to both — and passes the results
+        /// to <see cref="ShowTagComparisonDialog"/> along with the Jaccard similarity percentage.
+        /// </summary>
         private void btnCompareTags_Click(object sender, EventArgs e)
         {
             try
@@ -728,6 +790,13 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Displays a simple runtime dialog with a <c>ListBox</c> of icons and returns the
+        /// selected icon ID.  This method is legacy/unused; icon selection now goes through
+        /// <c>SingleSelectionDialog</c> directly in <see cref="btnCompareTags_Click"/>.
+        /// </summary>
+        /// <param name="icons">Icons table with <c>Id</c> and <c>Name</c> columns.</param>
+        /// <returns>Selected icon ID or <c>null</c> if cancelled.</returns>
         private int? ShowIconSelectionDialog(DataTable icons)
         {
             Form selectionForm = new Form();
@@ -778,6 +847,11 @@ DELETE FROM Icons WHERE Id = {id};";
             return null;
         }
 
+        /// <summary>
+        /// Builds and shows a themed runtime dialog containing three list boxes side-by-side:
+        /// tags exclusive to each icon and tags shared by both.  A statistics label shows
+        /// totals and the Jaccard similarity percentage.
+        /// </summary>
         private void ShowTagComparisonDialog(string icon1Name, string icon2Name,
             List<string> onlyInIcon1, List<string> onlyInIcon2, List<string> inBoth)
         {
@@ -839,6 +913,14 @@ DELETE FROM Icons WHERE Id = {id};";
             comparisonForm.ShowDialog();
         }
 
+        /// <summary>
+        /// Calculates the Jaccard similarity coefficient as a percentage:
+        /// <c>|intersection| / |union| * 100</c>.
+        /// Returns 100% when both sets are empty and 0% when only one set is empty.
+        /// </summary>
+        /// <param name="total1">Total tag count for the first icon.</param>
+        /// <param name="total2">Total tag count for the second icon.</param>
+        /// <param name="common">Count of tags present in both icons.</param>
         private double CalculateSimilarity(int total1, int total2, int common)
         {
             if (total1 == 0 && total2 == 0)
@@ -852,6 +934,10 @@ DELETE FROM Icons WHERE Id = {id};";
             return (double)common / union * 100.0;
         }
 
+        /// <summary>
+        /// Adds all <c>IconFile</c> rows for the selected icon to <c>IconBuffer</c>, skipping
+        /// any files that are already present (duplicate check per file ID).
+        /// </summary>
         private void btnAddToBuffer_Click(object sender, EventArgs e)
         {
             try
@@ -917,6 +1003,11 @@ DELETE FROM Icons WHERE Id = {id};";
             }
         }
 
+        /// <summary>
+        /// Shows a simple text-input dialog prompting for multiple tags (comma, space,
+        /// semicolon, or pipe-separated), then inserts each non-duplicate tag into
+        /// <c>IconTags</c> for the selected icon.
+        /// </summary>
         private void btnAddTags_Click(object sender, EventArgs e)
         {
             try
@@ -1045,6 +1136,7 @@ DELETE FROM Icons WHERE Id = {id};";
             return dialogResult == DialogResult.OK ? textBox.Text : null;
         }
 
+        /// <summary>Loads tags for the newly selected grid row whenever the ZidGrid selection changes.</summary>
         private void zidGrid1_OnSelectionChanged(object sender, EventArgs e)
         {
             if(zidGrid1.GridControl.SelectedRows != null && zidGrid1.GridControl.SelectedRows.Count > 0)

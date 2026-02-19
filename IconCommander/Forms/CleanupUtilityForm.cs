@@ -15,12 +15,30 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// Database maintenance utility that scans every <c>IconFiles</c> row for empty or
+    /// unreadable binary data.  After a scan the operator can either bulk-delete all
+    /// identified corrupt records or attempt in-place repair by re-reading from each
+    /// row's <c>OriginalPath</c>.  Progress is shown on a <see cref="ProgressBar"/> and
+    /// logged to a <c>ListBox</c>.
+    /// <para>
+    /// Unlike other forms in the project this form accepts a pre-initialised
+    /// <see cref="IIconCommanderDb"/> connector rather than creating its own.
+    /// </para>
+    /// </summary>
     public partial class CleanupUtilityForm : Form
     {
         private IIconCommanderDb connector;
         private ZidThemes theme;
         private DataTable corruptedFiles;
 
+        /// <summary>
+        /// Initialises the form with an existing database connector and the active theme.
+        /// The connector is used directly (not re-initialised) so the caller's connection
+        /// state is preserved.
+        /// </summary>
+        /// <param name="conx">Pre-initialised database connector.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
         public CleanupUtilityForm(IIconCommanderDb conx, ZidThemes currentTheme)
         {
             connector = conx;
@@ -28,17 +46,27 @@ namespace IconCommander.Forms
             InitializeComponent();
         }
 
+        /// <summary>Applies the active theme to the form.</summary>
         private void CleanupUtilityForm_Load(object sender, EventArgs e)
         {
             themeManager1.Theme = theme;
             themeManager1.ApplyTheme();
         }
 
+        /// <summary>Initiates a scan of all icon file records in the database.</summary>
         private void btnScan_Click(object sender, EventArgs e)
         {
             ScanForCorruptedFiles();
         }
 
+        /// <summary>
+        /// Queries every row in <c>IconFiles</c> and validates the <c>BinData</c> column.
+        /// SVG data is validated by parsing as XML and loading with Svg.NET; all other
+        /// formats are validated with <see cref="System.Drawing.Image.FromStream"/>.
+        /// Results are categorised as valid, empty, or corrupted.  After the scan,
+        /// <c>btnDelete</c> is always enabled and <c>btnRepair</c> is enabled only if at
+        /// least one record has a resolvable <c>OriginalPath</c>.
+        /// </summary>
         private void ScanForCorruptedFiles()
         {
             lstLog.Items.Clear();
@@ -199,6 +227,11 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Prompts for confirmation and then issues a <c>DELETE FROM IconFiles</c> statement
+        /// for each row in <see cref="corruptedFiles"/>.  Progress is tracked on
+        /// <c>progressBar</c> and results are logged to <c>lstLog</c>.
+        /// </summary>
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (corruptedFiles == null || corruptedFiles.Rows.Count == 0)
@@ -292,6 +325,12 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Attempts to repair each corrupt record that has a valid <c>OriginalPath</c> pointing
+        /// to an existing file.  The file is re-read, validated, and its hash is recalculated
+        /// before the database row is updated via <see cref="UpdateIconFileBinary"/>.
+        /// Records without an original path or whose file no longer exists are skipped.
+        /// </summary>
         private void btnRepair_Click(object sender, EventArgs e)
         {
             if (corruptedFiles == null || corruptedFiles.Rows.Count == 0)
@@ -475,6 +514,16 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Updates the <c>BinData</c> and <c>Hash</c> columns for the given icon file record.
+        /// When the connector is a <see cref="SqliteConnector"/> a parameterised command is used
+        /// directly on the underlying connection to handle BLOB data correctly.  For other
+        /// database types the binary data is hex-encoded inline in the SQL statement.
+        /// </summary>
+        /// <param name="iconFileId">Primary key of the <c>IconFiles</c> row to update.</param>
+        /// <param name="binData">New valid binary data to store.</param>
+        /// <param name="hash">SHA-256 hex string for the new binary data.</param>
+        /// <returns><c>true</c> if the update succeeded; otherwise <c>false</c>.</returns>
         private bool UpdateIconFileBinary(int iconFileId, byte[] binData, string hash)
         {
             try
@@ -515,6 +564,9 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Computes a lowercase hex-encoded SHA-256 hash of the provided byte array.</summary>
+        /// <param name="data">Binary data to hash.</param>
+        /// <returns>Lowercase 64-character hex string.</returns>
         private string CalculateHash(byte[] data)
         {
             using (System.Security.Cryptography.SHA256 sha256 = System.Security.Cryptography.SHA256.Create())
@@ -524,6 +576,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Closes this form.</summary>
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();

@@ -14,6 +14,13 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// Dialog for compositing two icons into a single merged image.
+    /// The user selects an overlay position (one of nine named corners/edges plus a free-form
+    /// X/Y option), previews the result in real time, and saves the merged icon back to the
+    /// database under the "Merged Icons" collection.  The merge recipe is also recorded in
+    /// <c>MergeRecipes</c> and the result is automatically added to the buffer zone.
+    /// </summary>
     public partial class MergeForm : Form
     {
         private string connectionString;
@@ -57,6 +64,10 @@ namespace IconCommander.Forms
             LoadImages();
         }
 
+        /// <summary>
+        /// Decodes <see cref="bigIconData"/> and <see cref="smallIconData"/> into <see cref="Image"/> objects,
+        /// handling both SVG and raster formats, and triggers the initial preview render.
+        /// </summary>
         private void LoadImages()
         {
             try
@@ -162,6 +173,7 @@ namespace IconCommander.Forms
             this.CenterToScreen();
         }
 
+        /// <summary>Returns the overlay position string corresponding to the currently checked radio button.</summary>
         private string GetSelectedPosition()
         {
             if (rbTopLeft.Checked) return "TopLeft";
@@ -183,6 +195,16 @@ namespace IconCommander.Forms
             return "TopRight";
         }
 
+        /// <summary>
+        /// Calculates the top-left pixel coordinate at which the small icon should be drawn
+        /// on top of the big icon, given the requested position string.
+        /// </summary>
+        /// <param name="position">One of the nine named positions or a "Custom:x,y" string.</param>
+        /// <param name="bigWidth">Width of the base (big) icon in pixels.</param>
+        /// <param name="bigHeight">Height of the base (big) icon in pixels.</param>
+        /// <param name="smallWidth">Width of the overlay (small) icon in pixels.</param>
+        /// <param name="smallHeight">Height of the overlay (small) icon in pixels.</param>
+        /// <returns>The <see cref="Point"/> at which to draw the overlay.</returns>
         private Point GetSmallIconPosition(string position, int bigWidth, int bigHeight, int smallWidth, int smallHeight)
         {
             // Check if custom position
@@ -250,6 +272,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Re-renders the merged preview image using the current position selection and updates the preview picture box.</summary>
         private void UpdatePreview()
         {
             try
@@ -265,6 +288,11 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Composites the small icon onto the big icon at the specified position using high-quality
+        /// bicubic interpolation and returns the result as a new 32-bit ARGB <see cref="Bitmap"/>.
+        /// </summary>
+        /// <param name="position">Position string (see <see cref="GetSmallIconPosition"/>).</param>
         private Image CreateMergedImage(string position)
         {
             // Create a new bitmap with the size of the big icon
@@ -365,6 +393,10 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>
+        /// Finds or creates the "Merged Icons" collection in the database.
+        /// </summary>
+        /// <returns>The ID of the collection, or -1 on failure.</returns>
         private int EnsureMergedIconsCollection()
         {
             // Check if collection exists
@@ -390,6 +422,11 @@ namespace IconCommander.Forms
             return -1;
         }
 
+        /// <summary>
+        /// Finds or creates the "Merged Icons" vein within the specified collection.
+        /// </summary>
+        /// <param name="collectionId">ID of the parent collection.</param>
+        /// <returns>The ID of the vein, or -1 on failure.</returns>
         private int EnsureMergedIconsVein(int collectionId)
         {
             // Check if vein exists
@@ -416,6 +453,14 @@ namespace IconCommander.Forms
             return -1;
         }
 
+        /// <summary>
+        /// Saves the composited image as a PNG to the database under the specified vein,
+        /// computing its SHA-256 hash for deduplication.
+        /// </summary>
+        /// <param name="veinId">ID of the target vein.</param>
+        /// <param name="iconName">Name to assign to the new icon.</param>
+        /// <param name="mergedImage">The composited <see cref="Image"/> to persist.</param>
+        /// <returns>The new <c>Icons.Id</c>, or -1 on failure.</returns>
         private int SaveMergedIcon(int veinId, string iconName, Image mergedImage)
         {
             // Register the icon
@@ -448,6 +493,7 @@ namespace IconCommander.Forms
             return iconId;
         }
 
+        /// <summary>Returns the most recently inserted <c>IconFiles.Id</c> for the given icon.</summary>
         private int GetMergedIconFileId(int iconId)
         {
             var response = Conx.ExecuteScalar($"SELECT Id FROM IconFiles WHERE Icon = {iconId} ORDER BY Id DESC");
@@ -458,6 +504,7 @@ namespace IconCommander.Forms
             return -1;
         }
 
+        /// <summary>Inserts a row into <c>MergeRecipes</c> recording the inputs, position, and output of this merge.</summary>
         private void SaveMergeRecipe(int bigIconId, int smallIconId, string position, int resultIconId)
         {
             string sql = $@"INSERT INTO MergeRecipes (BigIcon, SmallIcon, SmallIconPosition, IconResult)

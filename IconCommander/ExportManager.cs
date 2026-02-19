@@ -587,28 +587,50 @@ namespace IconCommander
     }
 
     /// <summary>
-    /// Simple icon data for export
+    /// Carries the minimum data needed to export a single icon file to a project:
+    /// the database ID, filename, file extension, and raw binary content.
     /// </summary>
     public class IconExportData
     {
+        /// <summary>Gets or sets the <c>IconFiles.Id</c> database identifier.</summary>
         public int IconFileId { get; set; }
+
+        /// <summary>Gets or sets the filename without extension.</summary>
         public string FileName { get; set; }
+
+        /// <summary>Gets or sets the file extension (with or without leading dot).</summary>
         public string Extension { get; set; }
+
+        /// <summary>Gets or sets the raw binary content of the icon file.</summary>
         public byte[] BinData { get; set; }
     }
 
     /// <summary>
-    /// Result of export operation
+    /// Aggregates the outcome of an <see cref="ExportManager"/> export operation,
+    /// recording success counts, errors, warnings, exported file paths,
+    /// resource names added to .resx files, and the number of .csproj files updated.
     /// </summary>
     public class ExportResult
     {
+        /// <summary>Gets or sets the number of icons successfully exported.</summary>
         public int SuccessCount { get; set; }
+
+        /// <summary>Gets or sets the list of error messages that prevented individual icon exports.</summary>
         public List<string> Errors { get; set; }
+
+        /// <summary>Gets or sets informational or diagnostic messages produced during the export (non-fatal).</summary>
         public List<string> Warnings { get; set; }
+
+        /// <summary>Gets or sets the full file-system paths of all icon files written to disk.</summary>
         public List<string> ExportedFiles { get; set; }
+
+        /// <summary>Gets or sets the resource names added to .resx files during the export.</summary>
         public List<string> ResourcesAdded { get; set; }
+
+        /// <summary>Gets or sets the number of .csproj project files that were updated with new content references.</summary>
         public int ProjectFilesUpdated { get; set; }
 
+        /// <summary>Initialises a new empty <see cref="ExportResult"/> with zero counts and empty lists.</summary>
         public ExportResult()
         {
             SuccessCount = 0;
@@ -619,7 +641,10 @@ namespace IconCommander
             ProjectFilesUpdated = 0;
         }
 
+        /// <summary>Gets a value indicating whether any errors were recorded during the export.</summary>
         public bool HasErrors => Errors.Count > 0;
+
+        /// <summary>Gets a value indicating whether at least one icon was exported without any errors.</summary>
         public bool IsSuccess => SuccessCount > 0 && !HasErrors;
     }
 }

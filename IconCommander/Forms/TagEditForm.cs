@@ -10,6 +10,11 @@ using ZidUtilities.CommonCode.Win.Forms;
 
 namespace IconCommander.Forms
 {
+    /// <summary>
+    /// Modal dialog that lets the user view, add, and remove tags for a single icon.
+    /// Tags are shown in a token-select control populated from the full tag dictionary;
+    /// changes are diff-computed on save and applied to the database in add/remove batches.
+    /// </summary>
     public partial class TagEditForm : Form
     {
         private IIconCommanderDb connector;
@@ -23,6 +28,15 @@ namespace IconCommander.Forms
         private HashSet<string> tagsToAdd;
         private HashSet<string> tagsToRemove;
 
+        /// <summary>
+        /// Initialises the form with the icon to edit and its current image.
+        /// Enlarges the form vertically when the icon is taller than the default 64 px thumbnail area.
+        /// </summary>
+        /// <param name="conx">Active database connector.</param>
+        /// <param name="iconFileId">ID of the <c>IconFiles</c> row whose tags are being edited.</param>
+        /// <param name="iconName">Display name of the icon (shown in the title bar).</param>
+        /// <param name="iconImage">Image to render as the icon preview thumbnail.</param>
+        /// <param name="currentTheme">Theme to apply to this form.</param>
         public TagEditForm(IIconCommanderDb conx, int iconFileId, string iconName, Image iconImage, ZidThemes currentTheme)
         {
             InitializeComponent();
@@ -47,6 +61,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Applies the current theme, sets the title bar text, resolves the icon ID, and loads tags.</summary>
         private void TagEditForm_Load(object sender, EventArgs e)
         {
             themeManager1.Theme = theme;
@@ -68,6 +83,9 @@ namespace IconCommander.Forms
             LoadTags();
         }
 
+        /// <summary>
+        /// Loads the icon's current tags and the full database tag list, then populates the token-select control.
+        /// </summary>
         private void LoadTags()
         {
             try
@@ -104,6 +122,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Binds <paramref name="allTags"/> to the token-select control and pre-selects <paramref name="selectedTags"/>.</summary>
         private void PopulateTokenSelect(HashSet<string> allTags, HashSet<string> selectedTags)
         {
             // Create dictionary for TokenSelect (display text -> value)
@@ -124,12 +143,14 @@ namespace IconCommander.Forms
             UpdateTagCount();
         }
 
+        /// <summary>Refreshes the tag-count label based on the current token selection.</summary>
         private void UpdateTagCount()
         {
             var selectedTags = tokenSelectCurrentTags.SelectedValues.Cast<object>().Select(v => v.ToString()).ToList();
             lblCurrentCount.Text = $"({selectedTags.Count} tags selected)";
         }
 
+        /// <summary>Enables or disables the Add button based on whether the new-tag text box contains a non-empty, non-duplicate value.</summary>
         private void UpdateAddButton()
         {
             string newTag = txtNewTag.Text.Trim();
@@ -169,6 +190,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Adds the text from <c>txtNewTag</c> as a new token in the token-select control, if it is not already present.</summary>
         private void btnAdd_Click(object sender, EventArgs e)
         {
             string newTag = txtNewTag.Text.Trim();
@@ -204,6 +226,10 @@ namespace IconCommander.Forms
             txtNewTag.Focus();
         }
 
+        /// <summary>
+        /// Computes the diff between the original tag set and the current selection,
+        /// then applies removals and additions to the database.
+        /// </summary>
         private void btnSave_Click(object sender, EventArgs e)
         {
             try
@@ -253,6 +279,7 @@ namespace IconCommander.Forms
             }
         }
 
+        /// <summary>Closes the form, prompting the user to confirm if there are unsaved tag changes.</summary>
         private void btnClose_Click(object sender, EventArgs e)
         {
             // Check if there are unsaved changes

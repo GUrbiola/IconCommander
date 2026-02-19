@@ -11,7 +11,12 @@ using ZidUtilities.CommonCode.Win.Forms;
 namespace IconCommander.Controls
 {
     /// <summary>
-    /// Custom control for displaying icons with proper stretching and sizing
+    /// Custom <see cref="UserControl"/> that renders a single icon image from binary data.
+    /// Supports both raster formats (PNG, JPG, BMP, ICO, GIF) and SVG files (via the Svg library).
+    /// Highlights the selected state with a blue border and exposes <see cref="IconClicked"/>,
+    /// <see cref="IconDoubleClicked"/>, and <see cref="TagEditRequested"/> events.
+    /// A context menu allows quick-save to common folders (Downloads, Desktop, Documents, C:\Temp)
+    /// or to a user-chosen location, as well as tag editing.
     /// </summary>
     public class IconDisplayControl : UserControl
     {
@@ -24,8 +29,13 @@ namespace IconCommander.Controls
         private bool _isSelected;
         private ContextMenuStrip contextMenu;
 
+        /// <summary>Raised when the user single-clicks the icon image.</summary>
         public event EventHandler IconClicked;
+
+        /// <summary>Raised when the user double-clicks the icon image.</summary>
         public event EventHandler IconDoubleClicked;
+
+        /// <summary>Raised when the user selects "Edit Tags…" from the context menu; the argument is <see cref="IconFileId"/>.</summary>
         public event EventHandler<int> TagEditRequested;
 
         /// <summary>
@@ -56,8 +66,8 @@ namespace IconCommander.Controls
         /// </summary>
         public string Extension { get; set; }
 
+        /// <summary>Gets or sets the display size in pixels used when rendering SVG images.</summary>
         public int DisplaySize { get; set; }
-
 
         /// <summary>
         /// Whether this icon is selected
@@ -85,6 +95,9 @@ namespace IconCommander.Controls
             }
         }
 
+        /// <summary>Initialises the control for the given file extension and desired display size.</summary>
+        /// <param name="extension">File extension (without dot) used to determine the rendering path (e.g. "svg", "png").</param>
+        /// <param name="size">Desired display size in pixels (used for SVG rasterisation).</param>
         public IconDisplayControl(string extension, int size)
         {
             InitializeComponents();
@@ -92,6 +105,7 @@ namespace IconCommander.Controls
             this.DisplaySize = size;
         }
 
+        /// <summary>Creates and arranges the internal border panel, picture box, filename label, and context menu.</summary>
         private void InitializeComponents()
         {
             this.SuspendLayout();
@@ -134,6 +148,7 @@ namespace IconCommander.Controls
             this.ResumeLayout(false);
         }
 
+        /// <summary>Builds the right-click context menu with save-to-location and tag-edit options.</summary>
         private void InitializeContextMenu()
         {
             contextMenu = new ContextMenuStrip();
@@ -175,6 +190,11 @@ namespace IconCommander.Controls
             contextMenu.Items.Add(menuEditTags);
         }
 
+        /// <summary>
+        /// Decodes <see cref="ImageData"/> and assigns the result to the internal picture box.
+        /// SVG data is parsed with the Svg library and rasterised to <see cref="DisplaySize"/> pixels;
+        /// all other formats are loaded via <see cref="System.Drawing.Image.FromStream"/>.
+        /// </summary>
         private void LoadImage()
         {
             if (_imageData == null || _imageData.Length == 0)
@@ -222,6 +242,7 @@ namespace IconCommander.Controls
             }
         }
 
+        /// <summary>Updates the border panel colour and padding to reflect the current <see cref="IsSelected"/> state.</summary>
         private void UpdateBorder()
         {
             if (_isSelected)
@@ -332,6 +353,11 @@ namespace IconCommander.Controls
             }
         }
 
+        /// <summary>
+        /// Writes <see cref="ImageData"/> to <paramref name="folderPath"/>, automatically resolving
+        /// filename conflicts by appending an incrementing counter suffix.
+        /// </summary>
+        /// <param name="folderPath">Target directory; must already exist.</param>
         private void SaveToLocation(string folderPath)
         {
             if (_imageData == null || _imageData.Length == 0)
