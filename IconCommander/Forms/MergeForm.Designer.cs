@@ -43,6 +43,7 @@ namespace IconCommander.Forms
             this.btnCancel = new System.Windows.Forms.Button();
             this.customY = new System.Windows.Forms.NumericUpDown();
             this.customX = new System.Windows.Forms.NumericUpDown();
+            this.btnSwap = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBigIcon)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -305,18 +306,18 @@ namespace IconCommander.Forms
             this.picPreview.TabStop = false;
             // 
             // btnMerge
-            // 
-            this.btnMerge.Location = new System.Drawing.Point(548, 318);
+            //
+            this.btnMerge.Location = new System.Drawing.Point(548, 394);
             this.btnMerge.Name = "btnMerge";
             this.btnMerge.Size = new System.Drawing.Size(75, 30);
             this.btnMerge.TabIndex = 4;
             this.btnMerge.Text = "Merge";
             this.btnMerge.UseVisualStyleBackColor = true;
             this.btnMerge.Click += new System.EventHandler(this.btnMerge_Click);
-            // 
+            //
             // btnCancel
-            // 
-            this.btnCancel.Location = new System.Drawing.Point(629, 318);
+            //
+            this.btnCancel.Location = new System.Drawing.Point(629, 394);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 30);
             this.btnCancel.TabIndex = 5;
@@ -359,12 +360,23 @@ namespace IconCommander.Forms
             this.customX.Size = new System.Drawing.Size(77, 20);
             this.customX.TabIndex = 15;
             this.customX.ValueChanged += new System.EventHandler(this.CustomPosition_Changed);
-            // 
+            //
+            // btnSwap
+            //
+            this.btnSwap.Location = new System.Drawing.Point(12, 394);
+            this.btnSwap.Name = "btnSwap";
+            this.btnSwap.Size = new System.Drawing.Size(120, 30);
+            this.btnSwap.TabIndex = 16;
+            this.btnSwap.Text = "Swap Icons";
+            this.btnSwap.UseVisualStyleBackColor = true;
+            this.btnSwap.Click += new System.EventHandler(this.btnSwap_Click);
+            //
             // MergeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(716, 400);
+            this.ClientSize = new System.Drawing.Size(716, 435);
+            this.Controls.Add(this.btnSwap);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnMerge);
             this.Controls.Add(this.groupBox4);
@@ -424,5 +436,6 @@ namespace IconCommander.Forms
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown customX;
         private System.Windows.Forms.NumericUpDown customY;
+        private System.Windows.Forms.Button btnSwap;
     }
 }

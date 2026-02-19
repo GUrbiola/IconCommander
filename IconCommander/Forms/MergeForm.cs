@@ -480,6 +480,40 @@ namespace IconCommander.Forms
             }
         }
 
+        private void btnSwap_Click(object sender, EventArgs e)
+        {
+            // Swap binary data
+            byte[] tempData = bigIconData;
+            bigIconData = smallIconData;
+            smallIconData = tempData;
+
+            // Swap file IDs
+            int tempId = bigIconFileId;
+            bigIconFileId = smallIconFileId;
+            smallIconFileId = tempId;
+
+            // Swap names
+            string tempName = bigIconName;
+            bigIconName = smallIconName;
+            smallIconName = tempName;
+
+            // Swap images
+            Image tempImage = bigIconImage;
+            bigIconImage = smallIconImage;
+            smallIconImage = tempImage;
+
+            // Update PictureBoxes
+            picBigIcon.Image = new Bitmap(bigIconImage);
+            picSmallIcon.Image = new Bitmap(smallIconImage);
+
+            // Update labels
+            lblBigIconInfo.Text = $"{bigIconName} ({bigIconImage.Width}x{bigIconImage.Height})";
+            lblSmallIconInfo.Text = $"{smallIconName} ({smallIconImage.Width}x{smallIconImage.Height})";
+
+            // Update preview
+            UpdatePreview();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
